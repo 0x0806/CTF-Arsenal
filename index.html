@@ -1,1 +1,518 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF Arsenal - Ultimate CTF Solving Platform</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>CTF Arsenal</h1>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-category="dashboard">Dashboard</button>
+                <button class="nav-btn" data-category="crypto">Cryptography</button>
+                <button class="nav-btn" data-category="web">Web Security</button>
+                <button class="nav-btn" data-category="forensics">Forensics</button>
+                <button class="nav-btn" data-category="pwn">Binary Exploitation</button>
+                <button class="nav-btn" data-category="reverse">Reverse Engineering</button>
+                <button class="nav-btn" data-category="misc">Miscellaneous</button>
+            </nav>
+        </header>
+
+        <!-- Dashboard -->
+        <section id="dashboard" class="tool-section active">
+            <div class="section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> CTF Dashboard</h2>
+                <p>Professional tools for Capture The Flag competitions</p>
+            </div>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <i class="fas fa-lock"></i>
+                    <h3>Cryptography</h3>
+                    <p>Encryption, hashing, ciphers</p>
+                    <span class="tool-count">12 Tools</span>
+                </div>
+                <div class="dashboard-card">
+                    <i class="fas fa-globe"></i>
+                    <h3>Web Security</h3>
+                    <p>SQLi, XSS, CSRF detection</p>
+                    <span class="tool-count">15 Tools</span>
+                </div>
+                <div class="dashboard-card">
+                    <i class="fas fa-search"></i>
+                    <h3>Forensics</h3>
+                    <p>File analysis, steganography</p>
+                    <span class="tool-count">10 Tools</span>
+                </div>
+                <div class="dashboard-card">
+                    <i class="fas fa-bug"></i>
+                    <h3>Binary Exploitation</h3>
+                    <p>Buffer overflow, ROP chains</p>
+                    <span class="tool-count">8 Tools</span>
+                </div>
+                <div class="dashboard-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Reverse Engineering</h3>
+                    <p>Disassembly, decompilation</p>
+                    <span class="tool-count">9 Tools</span>
+                </div>
+                <div class="dashboard-card">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <h3>Miscellaneous</h3>
+                    <p>OSINT, social engineering</p>
+                    <span class="tool-count">7 Tools</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cryptography Tools -->
+        <section id="crypto" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lock"></i> Cryptography Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Caesar Cipher</h3>
+                    <div class="tool-input">
+                        <textarea id="caesar-input" placeholder="Enter text to encrypt/decrypt"></textarea>
+                        <input type="number" id="caesar-shift" placeholder="Shift (1-25)" min="1" max="25" value="13">
+                        <div class="tool-buttons">
+                            <button onclick="caesarEncrypt()">Encrypt</button>
+                            <button onclick="caesarDecrypt()">Decrypt</button>
+                            <button onclick="caesarBruteForce()">Brute Force</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="caesar-output" readonly placeholder="Output will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Base64 Encoder/Decoder</h3>
+                    <div class="tool-input">
+                        <textarea id="base64-input" placeholder="Enter text or base64"></textarea>
+                        <div class="tool-buttons">
+                            <button onclick="base64Encode()">Encode</button>
+                            <button onclick="base64Decode()">Decode</button>
+                            <button onclick="base64Auto()">Auto Detect</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="base64-output" readonly placeholder="Output will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Hash Generator</h3>
+                    <div class="tool-input">
+                        <textarea id="hash-input" placeholder="Enter text to hash"></textarea>
+                        <select id="hash-type">
+                            <option value="md5">MD5</option>
+                            <option value="sha1">SHA1</option>
+                            <option value="sha256">SHA256</option>
+                            <option value="sha512">SHA512</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button onclick="generateHash()">Generate Hash</button>
+                            <button onclick="generateAllHashes()">All Hashes</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="hash-output" readonly placeholder="Hash will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Vigenère Cipher</h3>
+                    <div class="tool-input">
+                        <textarea id="vigenere-input" placeholder="Enter text"></textarea>
+                        <input type="text" id="vigenere-key" placeholder="Enter key">
+                        <div class="tool-buttons">
+                            <button onclick="vigenereEncrypt()">Encrypt</button>
+                            <button onclick="vigenereDecrypt()">Decrypt</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="vigenere-output" readonly placeholder="Output will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Web Security Tools -->
+        <section id="web" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-globe"></i> Web Security Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>SQL Injection Tester</h3>
+                    <div class="tool-input">
+                        <input type="url" id="sql-url" placeholder="Target URL">
+                        <textarea id="sql-params" placeholder="Parameters (param1=value1&param2=value2)"></textarea>
+                        <div class="tool-buttons">
+                            <button onclick="testSQLInjection()">Test SQLi</button>
+                            <button onclick="generateSQLPayloads()">Generate Payloads</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="sql-output" readonly placeholder="Results will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>XSS Payload Generator</h3>
+                    <div class="tool-input">
+                        <select id="xss-type">
+                            <option value="reflected">Reflected XSS</option>
+                            <option value="stored">Stored XSS</option>
+                            <option value="dom">DOM XSS</option>
+                        </select>
+                        <input type="text" id="xss-context" placeholder="Context (input, textarea, etc.)">
+                        <div class="tool-buttons">
+                            <button onclick="generateXSSPayloads()">Generate Payloads</button>
+                            <button onclick="testXSS()">Test XSS</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="xss-output" readonly placeholder="XSS payloads will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>URL Encoder/Decoder</h3>
+                    <div class="tool-input">
+                        <textarea id="url-input" placeholder="Enter URL or encoded text"></textarea>
+                        <div class="tool-buttons">
+                            <button onclick="urlEncode()">URL Encode</button>
+                            <button onclick="urlDecode()">URL Decode</button>
+                            <button onclick="doubleUrlEncode()">Double Encode</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="url-output" readonly placeholder="Output will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>JWT Decoder</h3>
+                    <div class="tool-input">
+                        <textarea id="jwt-input" placeholder="Enter JWT token"></textarea>
+                        <div class="tool-buttons">
+                            <button onclick="decodeJWT()">Decode JWT</button>
+                            <button onclick="validateJWT()">Validate</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="jwt-output" readonly placeholder="Decoded JWT will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forensics Tools -->
+        <section id="forensics" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-search"></i> Forensics Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>File Analyzer</h3>
+                    <div class="tool-input">
+                        <input type="file" id="file-input" accept="*/*">
+                        <div class="tool-buttons">
+                            <button onclick="analyzeFile()">Analyze File</button>
+                            <button onclick="extractStrings()">Extract Strings</button>
+                            <button onclick="hexDump()">Hex Dump</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="file-output" readonly placeholder="File analysis will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Steganography Detector</h3>
+                    <div class="tool-input">
+                        <input type="file" id="stego-input" accept="image/*">
+                        <div class="tool-buttons">
+                            <button onclick="detectSteganography()">Detect Hidden Data</button>
+                            <button onclick="extractLSB()">LSB Extract</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="stego-output" readonly placeholder="Hidden data will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>EXIF Data Extractor</h3>
+                    <div class="tool-input">
+                        <input type="file" id="exif-input" accept="image/*">
+                        <div class="tool-buttons">
+                            <button onclick="extractEXIF()">Extract EXIF</button>
+                            <button onclick="cleanEXIF()">Clean EXIF</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="exif-output" readonly placeholder="EXIF data will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Network Packet Analyzer</h3>
+                    <div class="tool-input">
+                        <input type="file" id="pcap-input" accept=".pcap,.pcapng">
+                        <div class="tool-buttons">
+                            <button onclick="analyzePCAP()">Analyze PCAP</button>
+                            <button onclick="extractCredentials()">Extract Creds</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="pcap-output" readonly placeholder="Packet analysis will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Binary Exploitation Tools -->
+        <section id="pwn" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-bug"></i> Binary Exploitation Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Shellcode Generator</h3>
+                    <div class="tool-input">
+                        <select id="shellcode-arch">
+                            <option value="x86">x86</option>
+                            <option value="x64">x64</option>
+                            <option value="arm">ARM</option>
+                        </select>
+                        <select id="shellcode-type">
+                            <option value="execve">execve /bin/sh</option>
+                            <option value="reverse">Reverse Shell</option>
+                            <option value="bind">Bind Shell</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button onclick="generateShellcode()">Generate</button>
+                            <button onclick="encodeShellcode()">Encode</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="shellcode-output" readonly placeholder="Shellcode will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>ROP Chain Builder</h3>
+                    <div class="tool-input">
+                        <textarea id="rop-gadgets" placeholder="Enter ROP gadgets (one per line)"></textarea>
+                        <input type="text" id="rop-target" placeholder="Target function/address">
+                        <div class="tool-buttons">
+                            <button onclick="buildROPChain()">Build Chain</button>
+                            <button onclick="findGadgets()">Find Gadgets</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="rop-output" readonly placeholder="ROP chain will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Pattern Generator</h3>
+                    <div class="tool-input">
+                        <input type="number" id="pattern-length" placeholder="Pattern length" min="1" max="10000" value="100">
+                        <div class="tool-buttons">
+                            <button onclick="generatePattern()">Generate Pattern</button>
+                            <button onclick="findOffset()">Find Offset</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="pattern-output" readonly placeholder="Pattern will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Format String Explorer</h3>
+                    <div class="tool-input">
+                        <input type="text" id="format-input" placeholder="Enter format string">
+                        <input type="number" id="format-offset" placeholder="Offset" value="1">
+                        <div class="tool-buttons">
+                            <button onclick="testFormatString()">Test Format</button>
+                            <button onclick="generateFormatPayload()">Generate Payload</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="format-output" readonly placeholder="Format string results will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reverse Engineering Tools -->
+        <section id="reverse" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-cogs"></i> Reverse Engineering Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>Assembly Converter</h3>
+                    <div class="tool-input">
+                        <textarea id="asm-input" placeholder="Enter assembly code or machine code"></textarea>
+                        <select id="asm-arch">
+                            <option value="x86">x86</option>
+                            <option value="x64">x64</option>
+                            <option value="arm">ARM</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button onclick="assembleCode()">Assemble</button>
+                            <button onclick="disassembleCode()">Disassemble</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="asm-output" readonly placeholder="Assembly output will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>String Extractor</h3>
+                    <div class="tool-input">
+                        <input type="file" id="strings-input" accept="*/*">
+                        <input type="number" id="min-length" placeholder="Min string length" value="4">
+                        <div class="tool-buttons">
+                            <button onclick="extractStringsFromFile()">Extract Strings</button>
+                            <button onclick="filterStrings()">Filter Results</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="strings-output" readonly placeholder="Extracted strings will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>XOR Analyzer</h3>
+                    <div class="tool-input">
+                        <textarea id="xor-data" placeholder="Enter hex data"></textarea>
+                        <input type="text" id="xor-key" placeholder="XOR key (hex)">
+                        <div class="tool-buttons">
+                            <button onclick="xorData()">XOR Data</button>
+                            <button onclick="bruteForceXOR()">Brute Force</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="xor-output" readonly placeholder="XOR results will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Deobfuscator</h3>
+                    <div class="tool-input">
+                        <textarea id="obfuscated-input" placeholder="Enter obfuscated code"></textarea>
+                        <select id="obfuscation-type">
+                            <option value="javascript">JavaScript</option>
+                            <option value="powershell">PowerShell</option>
+                            <option value="batch">Batch</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button onclick="deobfuscateCode()">Deobfuscate</button>
+                            <button onclick="beautifyCode()">Beautify</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="deobfuscated-output" readonly placeholder="Deobfuscated code will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Miscellaneous Tools -->
+        <section id="misc" class="tool-section">
+            <div class="section-header">
+                <h2><i class="fas fa-puzzle-piece"></i> Miscellaneous Tools</h2>
+            </div>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>QR Code Generator/Reader</h3>
+                    <div class="tool-input">
+                        <textarea id="qr-input" placeholder="Enter text or upload QR image"></textarea>
+                        <input type="file" id="qr-upload" accept="image/*">
+                        <div class="tool-buttons">
+                            <button onclick="generateQR()">Generate QR</button>
+                            <button onclick="readQR()">Read QR</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <div id="qr-output"></div>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>OSINT Toolkit</h3>
+                    <div class="tool-input">
+                        <input type="text" id="osint-target" placeholder="Enter domain, IP, or username">
+                        <select id="osint-type">
+                            <option value="domain">Domain Lookup</option>
+                            <option value="ip">IP Information</option>
+                            <option value="username">Username Search</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button onclick="performOSINT()">Search</button>
+                            <button onclick="generateOSINTReport()">Generate Report</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="osint-output" readonly placeholder="OSINT results will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Password Generator</h3>
+                    <div class="tool-input">
+                        <input type="number" id="pwd-length" placeholder="Length" value="16" min="4" max="100">
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="pwd-upper" checked> Uppercase</label>
+                            <label><input type="checkbox" id="pwd-lower" checked> Lowercase</label>
+                            <label><input type="checkbox" id="pwd-numbers" checked> Numbers</label>
+                            <label><input type="checkbox" id="pwd-symbols" checked> Symbols</label>
+                        </div>
+                        <div class="tool-buttons">
+                            <button onclick="generatePassword()">Generate</button>
+                            <button onclick="checkPasswordStrength()">Check Strength</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="pwd-output" readonly placeholder="Generated password will appear here"></textarea>
+                    </div>
+                </div>
+
+                <div class="tool-card">
+                    <h3>Port Scanner</h3>
+                    <div class="tool-input">
+                        <input type="text" id="scan-target" placeholder="Target IP or domain">
+                        <input type="text" id="scan-ports" placeholder="Ports (e.g., 80,443,1-1000)" value="80,443,22,21,25,53">
+                        <div class="tool-buttons">
+                            <button onclick="scanPorts()">Scan Ports</button>
+                            <button onclick="quickScan()">Quick Scan</button>
+                        </div>
+                    </div>
+                    <div class="tool-output">
+                        <textarea id="scan-output" readonly placeholder="Port scan results will appear here"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
