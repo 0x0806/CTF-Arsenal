@@ -427,7 +427,7 @@ body {
     }
 
     .main-content {
-        margin-top: 120px;
+        margin-top: 140px;
         padding: 1rem;
     }
 
@@ -437,19 +437,30 @@ body {
 
     .tool-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .modal-content {
         width: 95%;
-        margin: 10% auto;
+        margin: 5% auto;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .modal-body {
         padding: 1rem;
+        max-height: calc(90vh - 100px);
+        overflow-y: auto;
+    }
+
+    .input-group textarea,
+    .input-group input {
+        font-size: 16px; /* Prevents zoom on iOS */
     }
 }
 
@@ -464,6 +475,20 @@ body {
 
     .tool-card h4 {
         font-size: 1.1rem;
+    }
+
+    .nav-menu {
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
     }
 }
 
