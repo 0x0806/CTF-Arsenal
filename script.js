@@ -847,7 +847,7 @@ function caesarBruteForce() {
         results += `Shift ${i}: ${decrypted}\n`;
     }
 
-        output.textContent = results;
+    output.textContent = results;
     showMessage('Brute force completed!', 'success');
 }
 
@@ -876,6 +876,17 @@ function textToHex() {
 function hexToText() {
     const hex = document.getElementById('hexInput').value.replace(/\s+/g, '');
     const output = document.getElementById('hexOutput');
+
+    if (!hex) {
+        showMessage('Please enter hex data', 'error');
+        return;
+    }
+
+    if (!/^[0-9a-fA-F]*$/.test(hex)) {
+        output.textContent = 'Error: Invalid hex characters';
+        showMessage('Conversion failed! Use only 0-9 and A-F', 'error');
+        return;
+    }
 
     try {
         const text = hex.match(/.{1,2}/g)
@@ -1121,20 +1132,35 @@ function decodeJWT() {
     try {
         const parts = token.split('.');
         if (parts.length !== 3) {
-            throw new Error('Invalid JWT format');
+            throw new Error('Invalid JWT format - must have 3 parts separated by dots');
         }
 
-        const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        // Add padding if needed for base64 decoding
+        const addPadding = (str) => {
+            while (str.length % 4) {
+                str += '=';
+            }
+            return str;
+        };
+
+        const header = JSON.parse(atob(addPadding(parts[0].replace(/-/g, '+').replace(/_/g, '/'))));
+        const payload = JSON.parse(atob(addPadding(parts[1].replace(/-/g, '+').replace(/_/g, '/'))));
 
         let result = `<strong>Header:</strong>\n${JSON.stringify(header, null, 2)}\n\n`;
         result += `<strong>Payload:</strong>\n${JSON.stringify(payload, null, 2)}\n\n`;
-        result += `<strong>Signature:</strong>\n${parts[2]}`;
+        result += `<strong>Signature:</strong>\n${parts[2]}\n\n`;
+        
+        // Add expiration check if present
+        if (payload.exp) {
+            const expDate = new Date(payload.exp * 1000);
+            const isExpired = Date.now() > payload.exp * 1000;
+            result += `<strong>Expiration:</strong>\n${expDate.toLocaleString()} ${isExpired ? '(EXPIRED)' : '(VALID)'}`;
+        }
 
         output.innerHTML = `<pre>${result}</pre>`;
         showMessage('JWT decoded successfully!', 'success');
     } catch (error) {
-        output.textContent = 'Error: Invalid JWT token';
+        output.textContent = `Error: ${error.message}`;
         showMessage('JWT decoding failed!', 'error');
     }
 }
@@ -1180,7 +1206,7 @@ function generateSQLPayloads() {
     payloads[type].forEach((payload, index) => {
         // Fix: Escape special characters in param value for RegExp
         const escapedParam = param.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const testUrl = url.replace(new RegExp(`${escapedParam}=\\d+`), `${escapedParam}=${encodeURIComponent(payload)}`);
+        const testUrl = url.replace(new RegExp(`(${escapedParam}=)[^&]*`), `$1${encodeURIComponent(payload)}`);
         result += `${index + 1}. ${payload}\n   URL: ${testUrl}\n\n`;
     });
 
@@ -1247,42 +1273,63 @@ function crackHash() {
         return;
     }
 
-    const commonPasswords = ['password', '123456', 'admin', 'root', 'qwerty', 'letmein', 'welcome', 'monkey', 'dragon', 'master'];
-    const rockyou = ['123456', 'password', '12345678', 'qwerty', '123456789', 'letmein', '1234567', 'football', 'iloveyou', 'admin'];
+    // Check if CryptoJS is available
+    if (typeof CryptoJS === 'undefined') {
+        output.innerHTML = '<pre><strong style="color: #f44336;">Error:</strong> CryptoJS library not loaded. Hash cracking functionality unavailable.</pre>';
+        showMessage('CryptoJS library not available', 'error');
+        return;
+    }
+
+    const commonPasswords = ['password', '123456', 'admin', 'root', 'qwerty', 'letmein', 'welcome', 'monkey', 'dragon', 'master', 'test', 'guest', 'user', 'pass', '1234', 'abc123', 'password123', 'admin123'];
+    const rockyou = ['123456', 'password', '12345678', 'qwerty', '123456789', 'letmein', '1234567', 'football', 'iloveyou', 'admin', 'welcome', 'monkey', 'login', 'abc123', 'starwars', 'master', 'hello', 'freedom', 'whatever', 'qazwsx'];
 
     let wordlist = wordlistType === 'custom' ? 
         document.getElementById('customWordlist').value.split('\n').filter(w => w.trim()) :
         wordlistType === 'rockyou' ? rockyou : commonPasswords;
 
-    let found = false;
-    let result = `<strong>Hash Cracking Results:</strong>\n\nHash: ${hash}\nType: ${hashType.toUpperCase()}\n\n`;
-
-    for (let word of wordlist) {
-        word = word.trim();
-        if (!word) continue;
-
-        let testHash = '';
-        switch(hashType) {
-            case 'md5':
-                testHash = CryptoJS.MD5(word).toString();
-                break;
-            case 'sha1':
-                testHash = CryptoJS.SHA1(word).toString();
-                break;
-            case 'sha256':
-                testHash = CryptoJS.SHA256(word).toString();
-                break;
-        }
-
-        if (testHash === hash) {
-            result += `<strong style="color: #4caf50;">CRACKED!</strong>\nPlaintext: ${word}\n`;
-            found = true;
-            break;
-        }
+    if (wordlist.length === 0) {
+        showMessage('Wordlist is empty', 'error');
+        return;
     }
 
-    if (!found) {
-        result += '<strong style="color: #f44336;">Hash not found in wordlist</strong>\nTry a different wordlist or hash type.';
+    let found = false;
+    let result = `<strong>Hash Cracking Results:</strong>\n\nHash: ${hash}\nType: ${hashType.toUpperCase()}\nWordlist: ${wordlistType} (${wordlist.length} entries)\n\n`;
+
+    try {
+        for (let word of wordlist) {
+            word = word.trim();
+            if (!word) continue;
+
+            let testHash = '';
+            switch(hashType) {
+                case 'md5':
+                    testHash = CryptoJS.MD5(word).toString();
+                    break;
+                case 'sha1':
+                    testHash = CryptoJS.SHA1(word).toString();
+                    break;
+                case 'sha256':
+                    testHash = CryptoJS.SHA256(word).toString();
+                    break;
+                case 'ntlm':
+                    // NTLM is not directly supported by CryptoJS, fallback to MD5
+                    testHash = CryptoJS.MD5(word).toString();
+                    break;
+            }
+
+            if (testHash === hash) {
+                result += `<strong style="color: #4caf50;">CRACKED!</strong>\nPlaintext: ${word}\nHash matches: ${testHash}\n`;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            result += '<strong style="color: #f44336;">Hash not found in wordlist</strong>\nTry:\n- A different wordlist\n- Different hash type\n- Longer wordlist with more entries';
+        }
+    } catch (error) {
+        result += `<strong style="color: #f44336;">Error during cracking:</strong> ${error.message}`;
+        showMessage('Hash cracking failed', 'error');
     }
 
     output.innerHTML = `<pre>${result}</pre>`;
@@ -1387,6 +1434,23 @@ function textToBinary() {
 function binaryToText() {
     const binary = document.getElementById('binaryInput').value.replace(/\s+/g, '');
     const output = document.getElementById('binaryOutput');
+
+    if (!binary) {
+        showMessage('Please enter binary data', 'error');
+        return;
+    }
+
+    if (!/^[01]*$/.test(binary)) {
+        output.textContent = 'Error: Invalid binary characters';
+        showMessage('Conversion failed! Use only 0 and 1', 'error');
+        return;
+    }
+
+    if (binary.length % 8 !== 0) {
+        output.textContent = 'Error: Binary length must be multiple of 8';
+        showMessage('Conversion failed! Add padding zeros', 'error');
+        return;
+    }
 
     try {
         const text = binary.match(/.{1,8}/g)
@@ -1609,22 +1673,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add search functionality (placeholder)
-    const searchBox = document.createElement('input');
-    searchBox.type = 'text';
-    searchBox.placeholder = 'Search tools...';
-    searchBox.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid rgba(233, 69, 96, 0.3);
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        z-index: 1001;
-    `;
-    document.body.appendChild(searchBox);
+    // Search functionality will be added in future updates
 
     console.log('CTF Arsenal Platform Loaded Successfully!');
 });
@@ -1715,7 +1764,13 @@ async function generateSpecificHash() {
 
         switch(hashType) {
             case 'md5':
-                output.textContent = CryptoJS.MD5(text).toString();
+                if (typeof CryptoJS !== 'undefined') {
+                    output.textContent = CryptoJS.MD5(text).toString();
+                } else {
+                    output.textContent = 'CryptoJS not available for MD5';
+                    showMessage('CryptoJS library not loaded', 'error');
+                    return;
+                }
                 break;
             case 'sha1':
                 hashBuffer = await crypto.subtle.digest('SHA-1', data);
@@ -1736,32 +1791,169 @@ async function generateSpecificHash() {
 
         showMessage(`${hashType.toUpperCase()} hash generated successfully!`, 'success');
     } catch (error) {
-        output.textContent = 'Error generating hash';
+        output.textContent = `Error generating hash: ${error.message}`;
         showMessage('Hash generation failed!', 'error');
     }
 }
 
 // Rainbow table lookup function
 function rainbowLookup() {
-    const hash = document.getElementById('rainbowHash').value.trim();
+    const hash = document.getElementById('rainbowHash').value.trim().toLowerCase();
     const output = document.getElementById('rainbowOutput');
-    // Placeholder - replace with actual rainbow table lookup implementation
-    output.textContent = 'Rainbow table lookup is under development.';
-    showMessage('Rainbow table lookup is under development.', 'info');
+
+    if (!hash) {
+        showMessage('Please enter a hash', 'error');
+        return;
+    }
+
+    // Simulated rainbow table with common hashes
+    const rainbowTable = {
+        // MD5 hashes
+        '5d41402abc4b2a76b9719d911017c592': 'hello',
+        '098f6bcd4621d373cade4e832627b4f6': 'test',
+        'e99a18c428cb38d5f260853678922e03': 'abc123',
+        '25d55ad283aa400af464c76d713c07ad': 'hello world',
+        '202cb962ac59075b964b07152d234b70': '123',
+        '5ebe2294ecd0e0f08eab7690d2a6ee69': 'secret',
+        '21232f297a57a5a743894a0e4a801fc3': 'admin',
+        '482c811da5d5b4bc6d497ffa98491e38': 'password123',
+        // SHA1 hashes
+        'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d': 'hello',
+        'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3': 'test',
+        '356a192b7913b04c54574d18c28d46e6395428ab': '1',
+        'da39a3ee5e6b4b0d3255bfef95601890afd80709': '', // empty string
+        '2ef7bde608ce5404e97d5f042f95f89f1c232871': 'hello world'
+    };
+
+    let result = `<strong>Rainbow Table Lookup:</strong>\n\nHash: ${hash}\n\n`;
+
+    if (rainbowTable[hash]) {
+        result += `<strong style="color: #4caf50;">FOUND!</strong>\nPlaintext: ${rainbowTable[hash]}\n\nThis hash was found in our simulated rainbow table.`;
+        showMessage('Hash found in rainbow table!', 'success');
+    } else {
+        result += `<strong style="color: #f44336;">NOT FOUND</strong>\n\nThis hash was not found in our rainbow table.\n\nNote: This is a simulated rainbow table with limited entries.\nReal rainbow tables contain millions of hash-plaintext pairs.`;
+        showMessage('Hash not found in rainbow table', 'error');
+    }
+
+    output.innerHTML = `<pre>${result}</pre>`;
 }
 
 // Metadata extraction function
 function extractMetadata() {
     const fileInput = document.getElementById('metadataFile');
     const output = document.getElementById('metadataOutput');
+
     if (!fileInput.files[0]) {
         showMessage('Please upload a file', 'error');
         return;
     }
+
     const file = fileInput.files[0];
-    // Placeholder - replace with actual metadata extraction implementation
-    output.textContent = 'Metadata extraction is under development.';
-    showMessage('Metadata extraction is under development.', 'info');
+    let result = `<strong>File Metadata:</strong>\n\n`;
+    result += `File Name: ${file.name}\n`;
+    result += `File Size: ${file.size} bytes (${(file.size / 1024).toFixed(2)} KB)\n`;
+    result += `File Type: ${file.type || 'Unknown'}\n`;
+    result += `Last Modified: ${new Date(file.lastModified).toLocaleString()}\n\n`;
+
+    // Basic file signature analysis
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const header = Array.from(uint8Array.slice(0, 16))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join(' ');
+
+        result += `File Header (hex): ${header}\n`;
+
+        // File type detection based on magic numbers
+        const signatures = {
+            '89 50 4e 47': 'PNG Image',
+            'ff d8 ff': 'JPEG Image',
+            '47 49 46 38': 'GIF Image (GIF87a/89a)',
+            '50 4b 03 04': 'ZIP Archive',
+            '50 4b 05 06': 'ZIP Archive (empty)',
+            '50 4b 07 08': 'ZIP Archive (spanned)',
+            '52 61 72 21': 'RAR Archive',
+            '25 50 44 46': 'PDF Document',
+            '4d 5a': 'Windows Executable (PE)',
+            '7f 45 4c 46': 'Linux Executable (ELF)',
+            'ca fe ba be': 'Java Class File',
+            'ff fb': 'MP3 Audio',
+            '49 44 33': 'MP3 Audio with ID3v2',
+            '1f 8b': 'GZIP Archive',
+            '42 5a 68': 'BZIP2 Archive',
+            '37 7a bc af': '7-Zip Archive'
+        };
+
+        let detectedType = 'Unknown';
+        for (let sig in signatures) {
+            if (header.startsWith(sig)) {
+                detectedType = signatures[sig];
+                break;
+            }
+        }
+
+        result += `Detected Type: ${detectedType}\n\n`;
+
+        // Calculate file entropy
+        const entropy = calculateFileEntropy(uint8Array);
+        result += `File Entropy: ${entropy.toFixed(4)} bits\n`;
+        result += `Entropy Analysis: ${entropy > 7.5 ? 'High (likely encrypted/compressed)' : 'Low (likely plain text/uncompressed)'}\n\n`;
+
+        // Extract printable strings
+        const strings = extractPrintableStrings(uint8Array);
+        if (strings.length > 0) {
+            result += `Printable Strings Found: ${strings.length}\n`;
+            result += `Sample Strings:\n${strings.slice(0, 10).join('\n')}\n`;
+            if (strings.length > 10) {
+                result += '...(truncated)\n';
+            }
+        } else {
+            result += 'No printable strings found.\n';
+        }
+
+        output.innerHTML = `<pre>${result}</pre>`;
+        showMessage('Metadata extracted successfully!', 'success');
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function calculateFileEntropy(uint8Array) {
+    const freq = new Array(256).fill(0);
+    for (let byte of uint8Array) {
+        freq[byte]++;
+    }
+
+    let entropy = 0;
+    const length = uint8Array.length;
+    for (let count of freq) {
+        if (count > 0) {
+            const p = count / length;
+            entropy -= p * Math.log2(p);
+        }
+    }
+    return entropy;
+}
+
+function extractPrintableStrings(uint8Array) {
+    const minLength = 4;
+    const strings = [];
+    let currentString = '';
+
+    for (let i = 0; i < uint8Array.length; i++) {
+        const byte = uint8Array[i];
+        if (byte >= 32 && byte <= 126) {
+            currentString += String.fromCharCode(byte);
+        } else {
+            if (currentString.length >= minLength) {
+                strings.push(currentString);
+            }
+            currentString = '';
+        }
+    }
+
+    return strings.filter(s => s.length >= minLength);
 }
 
 // Hex viewer function
@@ -1798,12 +1990,20 @@ function beautifyJS() {
     const jsInput = document.getElementById('jsInput').value;
     const output = document.getElementById('jsOutput');
 
+    if (!jsInput.trim()) {
+        showMessage('Please enter JavaScript code to beautify', 'error');
+        return;
+    }
+
     try {
-        const beautified = js_beautify(jsInput); // Requires js_beautify library
+        const beautified = js_beautify(jsInput, {
+            indent_size: 2,
+            space_in_empty_paren: true
+        });
         output.textContent = beautified;
         showMessage('JavaScript code beautified!', 'success');
     } catch (error) {
-        output.textContent = 'Error: Invalid JavaScript code';
+        output.textContent = 'Error: Invalid JavaScript code or beautifier not available';
         showMessage('Beautify failed!', 'error');
     }
 }
@@ -1812,8 +2012,23 @@ function minifyJS() {
     const jsInput = document.getElementById('jsInput').value;
     const output = document.getElementById('jsOutput');
 
+    if (!jsInput.trim()) {
+        showMessage('Please enter JavaScript code to minify', 'error');
+        return;
+    }
+
     try {
-        const minified = js_beautify.js_minify(jsInput);
+        // Simple minification by removing extra whitespace and comments
+        const minified = jsInput
+            .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+            .replace(/\/\/.*$/gm, '') // Remove single-line comments
+            .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+            .replace(/;\s+/g, ';') // Remove space after semicolons
+            .replace(/,\s+/g, ',') // Remove space after commas
+            .replace(/\{\s+/g, '{') // Remove space after opening braces
+            .replace(/\s+\}/g, '}') // Remove space before closing braces
+            .trim();
+
         output.textContent = minified;
         showMessage('JavaScript code minified!', 'success');
     } catch (error) {
