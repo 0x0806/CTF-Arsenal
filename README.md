@@ -9,7 +9,7 @@
 
 > **A comprehensive web-based toolkit for Capture The Flag (CTF) competitions featuring 50+ specialized tools across 6 categories.**
 
-![CTF Arsenal Dashboard](https://via.placeholder.com/800x400/1a1a2e/e94560?text=CTF+Arsenal+Dashboard)
+![CTF Arsenal Dashboard](https://0x0806.github.io/CTF-Arsenal/)
 
 ## 🚀 Features
 
