@@ -218,7 +218,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **GitHub**: [@0x08006](https://github.com/0x0806)
+- **GitHub**: [@0x0806](https://github.com/0x0806)
 - **Issues**: [Report bugs or request features](https://github.com/0x08006/ctf-arsenal/issues)
 
 ---
@@ -227,7 +227,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **⭐ Star this repository if you find it useful!**
 
-[🚀 **Try CTF Arsenal Live**](https://replit.com/@username/ctf-arsenal) | [📝 **Report Issues**](https://github.com/0x08006/ctf-arsenal/issues) | [🤝 **Contribute**](https://github.com/0x08006/ctf-arsenal/pulls)
+[🚀 **Try CTF Arsenal Live**](https://0x0806.github.io/CTF-Arsenal/) | [📝 **Report Issues**](https://github.com/0x08006/ctf-arsenal/issues) | [🤝 **Contribute**](https://github.com/0x08006/ctf-arsenal/pulls)
 
 Made with ❤️ for the CTF community
 
