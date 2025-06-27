@@ -218,7 +218,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **GitHub**: [@0x08006](https://github.com/0x08006)
+- **GitHub**: [@0x08006](https://github.com/0x0806)
 - **Issues**: [Report bugs or request features](https://github.com/0x08006/ctf-arsenal/issues)
 
 ---
