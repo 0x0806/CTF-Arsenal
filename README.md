@@ -151,19 +151,6 @@ ctf-arsenal/
 - Progress indicators
 - Input validation
 
-## 🚀 Live Demo
-
-Experience CTF Arsenal live on Replit: [**Launch Demo**](https://replit.com/@username/ctf-arsenal)
-
-## 📱 Screenshots
-
-| Dashboard | Crypto Tools | Web Security |
-|-----------|--------------|--------------|
-| ![Dashboard](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Dashboard) | ![Crypto](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Crypto+Tools) | ![Web](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Web+Security) |
-
-| Forensics | Reverse Eng | Binary Pwn |
-|-----------|-------------|------------|
-| ![Forensics](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Forensics) | ![Reverse](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Reverse+Eng) | ![Binary](https://via.placeholder.com/250x150/1a1a2e/e94560?text=Binary+Pwn) |
 
 ## 🤝 Contributing
 
