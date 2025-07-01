@@ -215,6 +215,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .tool-card {
@@ -264,10 +265,12 @@ body {
     color: #ffffff;
 }
 
-.tool-card h4 {
+.tool-card h4,
+.tool-card h3 {
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .tool-card p {
@@ -885,20 +888,20 @@ body {
     .tool-interface .btn-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .crypto-analysis-grid,
     .stego-analysis-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .binary-hex-viewer {
         font-size: 0.65rem;
     }
-    
+
     .hex-line {
         flex-direction: column;
     }
-    
+
     .hex-offset,
     .hex-data,
     .hex-ascii {
@@ -1480,35 +1483,35 @@ body {
         height: auto;
         padding: 1rem;
     }
-    
+
     .nav-menu {
         gap: 1rem;
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .main-content {
         padding: 1rem;
     }
-    
+
     .section-header h2 {
         font-size: 2rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .tool-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 5% auto;
     }
-    
+
     .modal-body {
         padding: 1rem;
     }
@@ -1518,20 +1521,20 @@ body {
     .nav-menu {
         gap: 0.5rem;
     }
-    
+
     .nav-link {
         padding: 0.25rem 0.5rem;
         font-size: 0.9rem;
     }
-    
+
     .section-header h2 {
         font-size: 1.8rem;
     }
-    
+
     .tool-card {
         padding: 1rem;
     }
-    
+
     .stat-card {
         padding: 1.5rem;
     }
@@ -1576,12 +1579,12 @@ select:focus {
     .footer {
         display: none;
     }
-    
+
     .main-content {
         max-width: none;
         padding: 0;
     }
-    
+
     .tool-card {
         break-inside: avoid;
     }
@@ -1798,10 +1801,12 @@ body {
     margin-bottom: 1rem;
 }
 
-.tool-card h4 {
+.tool-card h4,
+.tool-card h3 {
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .tool-card p {
@@ -2113,7 +2118,7 @@ input[type="range"] {
 
     .modal-body {
         padding: 1rem;
-    }
+    }```text
 
     .btn-grid {
         grid-template-columns: 1fr;
@@ -2350,4 +2355,25 @@ table tr:hover {
         background: white;
         color: black;
     }
+}
+
+/* Processing state for buttons */
+.btn.processing {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+}
+
+.btn.processing::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
 }
