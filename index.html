@@ -31,6 +31,10 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://ctf-arsenal.replit.app">
     
+    <!-- Performance optimizations -->
+    <link rel="prefetch" href="script.js">
+    <link rel="prefetch" href="style.css">
+    
     <!-- External Libraries -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.min.js"></script>
@@ -192,29 +196,29 @@
                     <div class="tool-grid">
                         <article class="tool-card" onclick="showTool('base64')" tabindex="0" role="button" aria-label="Open Base64 Encoder/Decoder tool">
                             <i class="fas fa-code" aria-hidden="true"></i>
-                            <h3>Base64 Encoder/Decoder</h3>
+                            <h4>Base64 Encoder/Decoder</h4>
                             <p>Standard Base64 encoding and decoding for CTF challenges</p>
                         </article>
-                        <div class="tool-card" onclick="showTool('url')">
-                            <i class="fas fa-link"></i>
+                        <article class="tool-card" onclick="showTool('url')" tabindex="0" role="button" aria-label="Open URL Encoder/Decoder tool">
+                            <i class="fas fa-link" aria-hidden="true"></i>
                             <h4>URL Encoder/Decoder</h4>
                             <p>URL percent encoding and decoding</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('hex')">
-                            <i class="fas fa-hashtag"></i>
+                        </article>
+                        <article class="tool-card" onclick="showTool('hex')" tabindex="0" role="button" aria-label="Open Hex Converter tool">
+                            <i class="fas fa-hashtag" aria-hidden="true"></i>
                             <h4>Hex Converter</h4>
                             <p>Hexadecimal to text conversion</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('ascii')">
-                            <i class="fas fa-font"></i>
+                        </article>
+                        <article class="tool-card" onclick="showTool('ascii')" tabindex="0" role="button" aria-label="Open ASCII Converter tool">
+                            <i class="fas fa-font" aria-hidden="true"></i>
                             <h4>ASCII Converter</h4>
                             <p>ASCII code conversion utilities</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('binary-converter')">
-                            <i class="fas fa-binary"></i>
+                        </article>
+                        <article class="tool-card" onclick="showTool('binary-converter')" tabindex="0" role="button" aria-label="Open Binary Converter tool">
+                            <i class="fas fa-binary" aria-hidden="true"></i>
                             <h4>Binary Converter</h4>
                             <p>Binary, decimal, and hex conversions</p>
-                        </div>
+                        </article>
                     </div>
                 </div>
 
