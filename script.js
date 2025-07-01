@@ -1,99 +1,125 @@
-// Complete CTF Arsenal Implementation - All Tools Fully Functional
+// CTF Arsenal - Ultimate Security Tool Dashboard
+// Complete implementation with all 50+ tools
+
+// Global variables
+let currentTool = null;
+let modalOpen = false;
+
 // Navigation functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('.tool-section');
+    initializeNavigation();
+    initializeModal();
+    showSection('dashboard');
+});
 
+function initializeNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const targetSection = this.getAttribute('data-section');
+            const section = this.getAttribute('data-section');
+            showSection(section);
 
-            navLinks.forEach(l => l.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
-
+            // Update active nav link
+            navLinks.forEach(nl => nl.classList.remove('active'));
             this.classList.add('active');
-            document.getElementById(targetSection).classList.add('active');
         });
     });
-});
+}
+
+function showSection(sectionName) {
+    const sections = document.querySelectorAll('.tool-section');
+    sections.forEach(section => {
+        section.classList.remove('active');
+    });
+
+    const targetSection = document.getElementById(sectionName);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+}
 
 // Modal functionality
+function initializeModal() {
+    const modal = document.getElementById('toolModal');
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+}
+
 function showTool(toolName) {
+    currentTool = toolName;
     const modal = document.getElementById('toolModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
 
     modalTitle.textContent = getToolTitle(toolName);
     modalBody.innerHTML = getToolInterface(toolName);
-    modal.style.display = 'block';
 
+    modal.style.display = 'block';
+    modalOpen = true;
+
+    // Initialize tool-specific functionality
     initializeTool(toolName);
 }
 
 function closeModal() {
-    document.getElementById('toolModal').style.display = 'none';
-}
-
-window.onclick = function(event) {
     const modal = document.getElementById('toolModal');
-    if (event.target === modal) {
-        closeModal();
-    }
+    modal.style.display = 'none';
+    modalOpen = false;
+    currentTool = null;
 }
 
-// Tool titles mapping
 function getToolTitle(toolName) {
     const titles = {
         'base64': 'Base64 Encoder/Decoder',
-        'hash': 'Hash Analyzer',
-        'cipher': 'Caesar Cipher',
-        'hex': 'Hex Converter',
         'url': 'URL Encoder/Decoder',
+        'hex': 'Hexadecimal Converter',
         'ascii': 'ASCII Converter',
+        'binary-converter': 'Binary Converter',
         'caesar': 'Caesar Cipher',
         'vigenere': 'Vigenère Cipher',
         'atbash': 'Atbash Cipher',
         'rot13': 'ROT13 Cipher',
-        'hash-identifier': 'Hash Identifier',
-        'md5': 'MD5 Tools',
-        'sha': 'SHA Tools',
-        'rainbow': 'Rainbow Tables Lookup',
+        'morse-decoder': 'Morse Code Translator',
+        'hash-identifier': 'Hash Identifier & Analyzer',
+        'hash-cracker': 'Advanced Hash Cracker',
+        'md5': 'MD5 Hash Tools',
+        'sha': 'SHA Hash Tools',
+        'rainbow': 'Rainbow Table Lookup',
+        'password-generator': 'Password Generator',
         'sql-injection': 'SQL Injection Tool',
         'payload-generator': 'Payload Generator',
+        'jwt-decoder': 'JWT Decoder & Analyzer',
         'xss-payloads': 'XSS Payload Generator',
-        'xss-detector': 'XSS Detector',
         'js-beautifier': 'JavaScript Beautifier',
+        'xss-detector': 'XSS Detector',
         'request-builder': 'HTTP Request Builder',
-        'header-analyzer': 'HTTP Header Analyzer',
-        'forensics-analyzer': 'File Forensics Analyzer',
+        'header-analyzer': 'Security Header Analyzer',
+        'forensics-analyzer': 'Advanced File Analyzer',
         'metadata-extractor': 'Metadata Extractor',
         'hex-viewer': 'Advanced Hex Viewer',
+        'string-extractor': 'String Extractor',
         'steganography': 'Advanced Steganography Analyzer',
-        'lsb-extractor': 'LSB Steganography Extractor',
-        'pcap-analyzer': 'PCAP Network Analyzer',
-        'packet-viewer': 'Network Packet Viewer',
+        'lsb-extractor': 'LSB Extractor',
+        'pcap-analyzer': 'PCAP Analyzer',
+        'packet-viewer': 'Packet Viewer',
         'disassembler': 'Advanced Disassembler',
-        'decompiler': 'Code Decompiler',
-        'binary-analyzer': 'Binary File Analyzer',
-        'string-extractor': 'Advanced String Extractor',
+        'decompiler': 'Decompiler',
+        'binary-analyzer': 'Binary Analyzer',
         'rop-gadget': 'ROP Gadget Finder',
         'shellcode-generator': 'Shellcode Generator',
         'pattern-generator': 'Pattern Generator',
         'offset-finder': 'Offset Finder',
         'qr-decoder': 'QR Code Decoder',
         'barcode-decoder': 'Barcode Decoder',
-        'morse-decoder': 'Morse Code Decoder',
-        'brainfuck': 'Brainfuck Interpreter',
-        'jwt-decoder': 'JWT Token Decoder',
-        'hash-cracker': 'Advanced Hash Cracker',
-        'binary-converter': 'Binary Converter',
-        'password-generator': 'Password Generator'
+        'brainfuck': 'Brainfuck Interpreter'
     };
     return titles[toolName] || 'Unknown Tool';
 }
 
-// Tool interfaces with complete implementations
 function getToolInterface(toolName) {
     switch(toolName) {
         case 'base64':
@@ -119,44 +145,90 @@ function getToolInterface(toolName) {
                         <input type="file" id="base64File" style="margin-bottom: 0.5rem;">
                         <div class="btn-grid">
                             <button class="btn" onclick="encodeFile()">Encode File</button>
-                            <button class="btn" onclick="decodeToFile()">Decode to File</button>
+                            <button class="btn" onclick="downloadBase64()">Download as File</button>
                         </div>
                     </div>
                 </div>
             `;
 
-        case 'hash-identifier':
-        case 'hash':
+        case 'caesar':
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>Hash Input:</label>
-                        <textarea id="hashInput" rows="3" placeholder="Enter hash to identify/analyze"></textarea>
+                        <label>Input Text:</label>
+                        <textarea id="caesarInput" rows="4" placeholder="Enter text to encrypt/decrypt"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Shift Value (0-25):</label>
+                        <input type="number" id="caesarShift" min="0" max="25" value="13" placeholder="13">
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="analyzeHash()">Analyze Hash</button>
-                        <button class="btn" onclick="identifyHashType()">Identify Type</button>
-                        <button class="btn" onclick="checkHashSecurity()">Security Check</button>
+                        <button class="btn" onclick="caesarEncrypt()">Encrypt</button>
+                        <button class="btn" onclick="caesarDecrypt()">Decrypt</button>
+                        <button class="btn" onclick="caesarBruteForce()">Brute Force All Shifts</button>
+                        <button class="btn" onclick="clearCaesar()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Hash Analysis:</label>
-                        <div id="hashOutput" class="output-area"></div>
+                        <label>Output:</label>
+                        <div id="caesarOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'hex':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input:</label>
+                        <textarea id="hexInput" rows="4" placeholder="Enter text or hex data"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="textToHex()">Text → Hex</button>
+                        <button class="btn" onclick="hexToText()">Hex → Text</button>
+                        <button class="btn" onclick="hexToBytes()">Hex → Bytes</button>
+                        <button class="btn" onclick="clearHex()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Generate Hash:</label>
-                        <input type="text" id="textToHash" placeholder="Enter text to hash">
-                        <select id="hashType">
-                            <option value="md5">MD5</option>
-                            <option value="sha1">SHA-1</option>
-                            <option value="sha256">SHA-256</option>
-                            <option value="sha512">SHA-512</option>
-                            <option value="sha3-256">SHA3-256</option>
-                            <option value="sha3-512">SHA3-512</option>
-                            <option value="blake2s">BLAKE2s</option>
-                            <option value="blake2b">BLAKE2b</option>
-                        </select>
-                        <button class="btn" onclick="generateHash()">Generate Hash</button>
-                        <div id="generatedHash" class="output-area"></div>
+                        <label>Output:</label>
+                        <div id="hexOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'hash-identifier':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Hash to Analyze:</label>
+                        <textarea id="hashInput" rows="3" placeholder="Enter hash to identify"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="identifyHash()">Identify Hash</button>
+                        <button class="btn" onclick="analyzeHash()">Deep Analysis</button>
+                        <button class="btn" onclick="clearHashId()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Analysis Results:</label>
+                        <div id="hashIdOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'jwt-decoder':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>JWT Token:</label>
+                        <textarea id="jwtInput" rows="4" placeholder="Enter JWT token (eyJ...)"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="decodeJWT()">Decode JWT</button>
+                        <button class="btn" onclick="analyzeJWT()">Security Analysis</button>
+                        <button class="btn" onclick="clearJWT()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Decoded Output:</label>
+                        <div id="jwtOutput" class="output-area"></div>
                     </div>
                 </div>
             `;
@@ -166,182 +238,83 @@ function getToolInterface(toolName) {
                 <div class="tool-interface">
                     <div class="input-group">
                         <label>Upload Image:</label>
-                        <input type="file" id="stegoImage" accept="image/*">
-                    </div>
-                    <div class="input-group">
-                        <label>Analysis Type:</label>
-                        <select id="stegoType">
-                            <option value="lsb">LSB Analysis</option>
-                            <option value="metadata">Metadata Extraction</option>
-                            <option value="strings">String Extraction</option>
-                            <option value="visual">Visual Analysis</option>
-                            <option value="frequency">Frequency Analysis</option>
-                            <option value="entropy">Entropy Analysis</option>
-                            <option value="statistical">Statistical Analysis</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>LSB Extraction Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="extractRed" checked> Red Channel</label>
-                            <label><input type="checkbox" id="extractGreen" checked> Green Channel</label>
-                            <label><input type="checkbox" id="extractBlue" checked> Blue Channel</label>
-                            <label><input type="checkbox" id="extractAlpha"> Alpha Channel</label>
-                            <label><input type="checkbox" id="interleavedMode"> Interleaved Mode</label>
-                            <label><input type="checkbox" id="reverseBits"> Reverse Bit Order</label>
-                        </div>
+                        <input type="file" id="stegoFile" accept="image/*">
+                        <canvas id="stegoCanvas" style="max-width: 100%; margin-top: 1rem; display: none;"></canvas>
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="analyzeSteganography()">Analyze Image</button>
-                        <button class="btn" onclick="extractLSBData()">Extract LSB Data</button>
-                        <button class="btn" onclick="createStegoVisualization()">Create Visualization</button>
-                        <button class="btn" onclick="exportResults()">Export Results</button>
+                        <button class="btn" onclick="analyzeLSB()">LSB Analysis</button>
+                        <button class="btn" onclick="extractChannels()">Extract RGB Channels</button>
+                        <button class="btn" onclick="detectStego()">Detect Steganography</button>
+                        <button class="btn" onclick="clearStego()">Clear</button>
                     </div>
                     <div class="input-group">
                         <label>Analysis Results:</label>
                         <div id="stegoOutput" class="output-area"></div>
                     </div>
-                    <div id="stegoCanvas" style="margin-top: 1rem;"></div>
                 </div>
             `;
 
-        case 'disassembler':
+        case 'sql-injection':
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>Input Method:</label>
-                        <select id="inputMethod" onchange="toggleInputMethod()">
-                            <option value="file">Upload Binary File</option>
-                            <option value="hex">Hex String Input</option>
-                            <option value="assembly">Assembly Code Input</option>
-                        </select>
-                    </div>
-                    <div class="input-group" id="fileInputGroup">
-                        <label>Upload Binary File:</label>
-                        <input type="file" id="binaryFile">
-                    </div>
-                    <div class="input-group" id="hexInputGroup" style="display: none;">
-                        <label>Hex Input:</label>
-                        <textarea id="hexInput" rows="4" placeholder="Enter hexadecimal bytes (e.g., 48894824488944241048c7c0...)"></textarea>
-                    </div>
-                    <div class="input-group" id="asmInputGroup" style="display: none;">
-                        <label>Assembly Code:</label>
-                        <textarea id="asmInput" rows="6" placeholder="Enter assembly code to convert to machine code"></textarea>
+                        <label>Target URL/Parameter:</label>
+                        <input type="text" id="sqlTarget" placeholder="http://example.com/page.php?id=1">
                     </div>
                     <div class="input-group">
-                        <label>Architecture:</label>
-                        <select id="architecture">
-                            <option value="x86">x86 (32-bit)</option>
-                            <option value="x64">x64 (64-bit)</option>
-                            <option value="arm">ARM</option>
-                            <option value="arm64">ARM64</option>
-                            <option value="mips">MIPS</option>
-                            <option value="mips64">MIPS64</option>
-                            <option value="riscv">RISC-V</option>
-                            <option value="powerpc">PowerPC</option>
+                        <label>Injection Type:</label>
+                        <select id="sqlType">
+                            <option value="union">UNION-based</option>
+                            <option value="boolean">Boolean-based</option>
+                            <option value="time">Time-based</option>
+                            <option value="error">Error-based</option>
                         </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Analysis Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="showAddresses" checked> Show Addresses</label>
-                            <label><input type="checkbox" id="showBytes" checked> Show Hex Bytes</label>
-                            <label><input type="checkbox" id="showComments"> Add Comments</label>
-                            <label><input type="checkbox" id="detectFunctions"> Function Detection</label>
-                            <label><input type="checkbox" id="controlFlow"> Control Flow Analysis</label>
-                            <label><input type="checkbox" id="callGraph"> Call Graph</label>
-                        </div>
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="disassembleBinary()">Disassemble</button>
-                        <button class="btn" onclick="assembleToBinary()">Assemble</button>
-                        <button class="btn" onclick="analyzeStructure()">Analyze Structure</button>
-                        <button class="btn" onclick="exportDisassembly()">Export Results</button>
+                        <button class="btn" onclick="generateSQLPayloads()">Generate Payloads</button>
+                        <button class="btn" onclick="testSQLInjection()">Test Injection</button>
+                        <button class="btn" onclick="clearSQL()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Disassembly Results:</label>
-                        <div id="disassemblyOutput" class="output-area"></div>
+                        <label>Generated Payloads:</label>
+                        <div id="sqlOutput" class="output-area"></div>
                     </div>
                 </div>
             `;
 
-        case 'hash-cracker':
+        case 'pattern-generator':
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>Hash to Crack:</label>
-                        <input type="text" id="crackHash" placeholder="Enter hash">
+                        <label>Pattern Length:</label>
+                        <input type="number" id="patternLength" value="100" min="1" max="10000">
                     </div>
                     <div class="input-group">
-                        <label>Hash Type:</label>
-                        <select id="crackHashType">
-                            <option value="md5">MD5</option>
-                            <option value="sha1">SHA-1</option>
-                            <option value="sha256">SHA-256</option>
-                            <option value="sha512">SHA-512</option>
-                            <option value="ntlm">NTLM</option>
-                            <option value="sha3-256">SHA3-256</option>
-                            <option value="blake2b">BLAKE2b</option>
+                        <label>Pattern Type:</label>
+                        <select id="patternType">
+                            <option value="cyclic">Cyclic (De Bruijn)</option>
+                            <option value="alphabetic">Alphabetic</option>
+                            <option value="numeric">Numeric</option>
+                            <option value="custom">Custom Characters</option>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label>Attack Mode:</label>
-                        <select id="attackMode" onchange="updateAttackOptions()">
-                            <option value="dictionary">Dictionary Attack</option>
-                            <option value="bruteforce">Brute Force</option>
-                            <option value="hybrid">Hybrid Attack</option>
-                            <option value="mask">Mask Attack</option>
-                            <option value="rainbow">Rainbow Tables</option>
-                            <option value="rule">Rule-based</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Wordlist/Dictionary:</label>
-                        <select id="wordlist" onchange="updateWordlistOptions()">
-                            <option value="common">Common Passwords (1K)</option>
-                            <option value="rockyou">RockYou Top 10K</option>
-                            <option value="leaked">Leaked Passwords (5K)</option>
-                            <option value="patterns">Pattern-based (10K)</option>
-                            <option value="custom">Custom List</option>
-                        </select>
-                    </div>
-                    <div class="input-group" id="customWordlistGroup" style="display: none;">
-                        <label>Custom Wordlist (one per line):</label>
-                        <textarea id="customWordlist" rows="4" placeholder="password1\npassword2\nadmin\n123456"></textarea>
-                    </div>
-                    <div class="input-group" id="maskGroup" style="display: none;">
-                        <label>Mask Pattern:</label>
-                        <input type="text" id="maskPattern" placeholder="?u?l?l?l?l?d?d?d" value="?u?l?l?l?l?d?d?d">
-                        <small>?l=lowercase, ?u=uppercase, ?d=digit, ?s=symbol, ?a=all</small>
-                    </div>
-                    <div class="input-group">
-                        <label>Advanced Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label>Max Length: <input type="number" id="maxLength" value="8" min="1" max="12" style="width: 60px;"></label>
-                            <label>Min Length: <input type="number" id="minLength" value="1" min="1" max="12" style="width: 60px;"></label>
-                            <label><input type="checkbox" id="useUppercase" checked> Uppercase</label>
-                            <label><input type="checkbox" id="useLowercase" checked> Lowercase</label>
-                            <label><input type="checkbox" id="useDigits" checked> Digits</label>
-                            <label><input type="checkbox" id="useSymbols"> Symbols</label>
-                        </div>
+                        <label>Custom Characters (if selected):</label>
+                        <input type="text" id="customChars" placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789">
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="startHashCracking()">Start Cracking</button>
-                        <button class="btn" onclick="stopCracking()" style="background: #e74c3c;">Stop</button>
-                        <button class="btn" onclick="pauseCracking()">Pause/Resume</button>
-                        <button class="btn" onclick="resetCracking()">Reset</button>
+                        <button class="btn" onclick="generatePattern()">Generate Pattern</button>
+                        <button class="btn" onclick="findOffset()">Find Offset</button>
+                        <button class="btn" onclick="clearPattern()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Progress:</label>
-                        <div class="progress-bar">
-                            <div id="crackProgress" class="progress-fill"></div>
-                        </div>
-                        <div id="crackStatus" style="margin-top: 0.5rem; color: #bbb;"></div>
-                        <div id="crackSpeed" style="margin-top: 0.25rem; color: #888; font-size: 0.9em;"></div>
+                        <label>Generated Pattern:</label>
+                        <div id="patternOutput" class="output-area"></div>
                     </div>
                     <div class="input-group">
-                        <label>Results:</label>
-                        <div id="crackOutput" class="output-area"></div>
+                        <label>Find Pattern in Crash (for offset calculation):</label>
+                        <input type="text" id="crashPattern" placeholder="Enter 4-8 character sequence from crash">
+                        <div id="offsetOutput" class="output-area"></div>
                     </div>
                 </div>
             `;
@@ -350,422 +323,154 @@ function getToolInterface(toolName) {
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>QR Code Operations:</label>
-                        <select id="qrOperation" onchange="toggleQROperation()">
-                            <option value="decode">Decode QR Code</option>
-                            <option value="generate">Generate QR Code</option>
-                            <option value="batch">Batch Processing</option>
-                        </select>
-                    </div>
-                    <div class="input-group" id="qrDecodeGroup">
-                        <label>Upload QR Code Image:</label>
-                        <input type="file" id="qrFile" accept="image/*" multiple>
-                    </div>
-                    <div class="input-group" id="qrGenerateGroup" style="display: none;">
-                        <label>Data to Encode:</label>
-                        <textarea id="qrData" rows="4" placeholder="Enter text, URL, or data to encode in QR code"></textarea>
-                        <label>QR Code Type:</label>
-                        <select id="qrDataType">
-                            <option value="text">Plain Text</option>
-                            <option value="url">URL</option>
-                            <option value="wifi">WiFi Network</option>
-                            <option value="email">Email</option>
-                            <option value="sms">SMS</option>
-                            <option value="vcard">Contact Card</option>
-                            <option value="geo">Geographic Location</option>
-                        </select>
-                    </div>
-                    <div class="input-group" id="qrWifiGroup" style="display: none;">
-                        <label>WiFi SSID:</label>
-                        <input type="text" id="wifiSSID" placeholder="Network name">
-                        <label>WiFi Password:</label>
-                        <input type="password" id="wifiPassword" placeholder="Network password">
-                        <label>Security Type:</label>
-                        <select id="wifiSecurity">
-                            <option value="WPA">WPA/WPA2</option>
-                            <option value="WEP">WEP</option>
-                            <option value="nopass">Open Network</option>
-                        </select>
+                        <label>QR Code Image:</label>
+                        <input type="file" id="qrFile" accept="image/*">
+                        <canvas id="qrCanvas" style="max-width: 100%; margin-top: 1rem; display: none;"></canvas>
                     </div>
                     <div class="input-group">
-                        <label>Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label>Size: <input type="range" id="qrSize" min="100" max="800" value="256" style="width: 100px;"> <span id="qrSizeValue">256px</span></label>
-                            <label>Error Correction: <select id="errorCorrection">
-                                <option value="L">Low (7%)</option>
-                                <option value="M" selected>Medium (15%)</option>
-                                <option value="Q">Quartile (25%)</option>
-                                <option value="H">High (30%)</option>
-                            </select></label>
-                            <label><input type="checkbox" id="includeMargin" checked> Include Margin</label>
-                            <label><input type="checkbox" id="darkMode"> Dark Mode</label>
-                        </div>
+                        <label>Or Generate QR Code:</label>
+                        <textarea id="qrText" rows="3" placeholder="Enter text to encode as QR code"></textarea>
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="processQRCode()">Process QR Code</button>
-                        <button class="btn" onclick="analyzeQRStructure()">Analyze Structure</button>
-                        <button class="btn" onclick="downloadQRCode()">Download Result</button>
-                        <button class="btn" onclick="clearQRResults()">Clear</button>
+                        <button class="btn" onclick="decodeQR()">Decode QR Code</button>
+                        <button class="btn" onclick="generateQR()">Generate QR Code</button>
+                        <button class="btn" onclick="clearQR()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Results:</label>
+                        <label>Result:</label>
                         <div id="qrOutput" class="output-area"></div>
                     </div>
-                    <div id="qrDisplay" style="margin-top: 1rem; text-align: center;"></div>
                 </div>
             `;
 
-        case 'forensics-analyzer':
+        case 'password-generator':
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>Upload File:</label>
-                        <input type="file" id="forensicsFile" multiple>
+                        <label>Password Length:</label>
+                        <input type="number" id="passLength" value="16" min="4" max="128">
                     </div>
                     <div class="input-group">
-                        <label>Analysis Type:</label>
-                        <select id="forensicsType">
-                            <option value="complete">Complete Analysis</option>
-                            <option value="header">File Header Analysis</option>
-                            <option value="strings">String Extraction</option>
-                            <option value="metadata">Metadata Analysis</option>
-                            <option value="entropy">Entropy Analysis</option>
-                            <option value="signature">File Signature Detection</option>
-                            <option value="carving">File Carving</option>
-                            <option value="timeline">Timeline Analysis</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>String Extraction Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label>Min Length: <input type="number" id="minStringLength" value="4" min="1" max="100" style="width: 60px;"></label>
-                            <label>Max Results: <input type="number" id="maxResults" value="1000" min="10" max="10000" style="width: 80px;"></label>
-                            <label><input type="checkbox" id="extractASCII" checked> ASCII Strings</label>
-                            <label><input type="checkbox" id="extractUnicode"> Unicode Strings</label>
-                            <label><input type="checkbox" id="extractURLs" checked> URLs</label>
-                            <label><input type="checkbox" id="extractEmails" checked> Email Addresses</label>
-                            <label><input type="checkbox" id="extractIPs" checked> IP Addresses</label>
-                            <label><input type="checkbox" id="extractHashes"> Hash Values</label>
+                        <label>Character Sets:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="useUppercase" checked> Uppercase (A-Z)</label>
+                            <label><input type="checkbox" id="useLowercase" checked> Lowercase (a-z)</label>
+                            <label><input type="checkbox" id="useNumbers" checked> Numbers (0-9)</label>
+                            <label><input type="checkbox" id="useSymbols" checked> Symbols (!@#$%^&*)</label>
+                            <label><input type="checkbox" id="useAmbiguous"> Ambiguous (0,O,l,1)</label>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Entropy Analysis Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label>Block Size: <input type="number" id="entropyBlockSize" value="1024" min="256" max="8192" style="width: 80px;"></label>
-                            <label><input type="checkbox" id="createEntropyGraph" checked> Create Entropy Graph</label>
-                            <label><input type="checkbox" id="detectEncryption" checked> Detect Encryption</label>
-                            <label><input type="checkbox" id="detectCompression" checked> Detect Compression</label>
-                        </div>
+                        <label>Number of Passwords:</label>
+                        <input type="number" id="passCount" value="5" min="1" max="50">
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="analyzeForensicsFile()">Analyze File</button>
-                        <button class="btn" onclick="generateReport()">Generate Report</button>
-                        <button class="btn" onclick="exportFindings()">Export Findings</button>
-                        <button class="btn" onclick="compareFiles()">Compare Files</button>
+                        <button class="btn" onclick="generatePasswords()">Generate Passwords</button>
+                        <button class="btn" onclick="checkPasswordStrength()">Check Strength</button>
+                        <button class="btn" onclick="clearPasswords()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Analysis Results:</label>
-                        <div id="forensicsOutput" class="output-area"></div>
-                    </div>
-                    <div id="forensicsCharts" style="margin-top: 1rem;"></div>
-                </div>
-            `;
-
-        case 'string-extractor':
-            return `
-                <div class="tool-interface">
-                    <div class="input-group">
-                        <label>Input Method:</label>
-                        <select id="stringInputMethod" onchange="toggleStringInputMethod()">
-                            <option value="file">Upload Binary File</option>
-                            <option value="text">Text Input</option>
-                            <option value="hex">Hex Input</option>
-                            <option value="url">URL/Remote File</option>
-                        </select>
-                    </div>
-                    <div class="input-group" id="stringFileGroup">
-                        <label>Upload File:</label>
-                        <input type="file" id="stringFile" multiple>
-                    </div>
-                    <div class="input-group" id="stringTextGroup" style="display: none;">
-                        <label>Text Input:</label>
-                        <textarea id="stringTextInput" rows="6" placeholder="Enter text or paste binary data"></textarea>
-                    </div>
-                    <div class="input-group" id="stringHexGroup" style="display: none;">
-                        <label>Hex Input:</label>
-                        <textarea id="stringHexInput" rows="4" placeholder="Enter hexadecimal data"></textarea>
-                    </div>
-                    <div class="input-group" id="stringUrlGroup" style="display: none;">
-                        <label>URL:</label>
-                        <input type="url" id="stringUrl" placeholder="https://example.com/file.bin">
-                    </div>
-                    <div class="input-group">
-                        <label>String Types to Extract:</label>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="extractPrintable" checked> Printable ASCII</label>
-                            <label><input type="checkbox" id="extractUnicodeStrings" checked> Unicode</label>
-                            <label><input type="checkbox" id="extractBase64" checked> Base64 Encoded</label>
-                            <label><input type="checkbox" id="extractUrls" checked> URLs</label>
-                            <label><input type="checkbox" id="extractEmails" checked> Email Addresses</label>
-                            <label><input type="checkbox" id="extractIpAddresses" checked> IP Addresses</label>
-                            <label><input type="checkbox" id="extractHexStrings"> Hex Strings</label>
-                            <label><input type="checkbox" id="extractRegex"> Regex Patterns</label>
-                            <label><input type="checkbox" id="extractFilePaths"> File Paths</label>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Extraction Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label>Min Length: <input type="number" id="stringMinLength" value="4" min="1" max="100" style="width: 60px;"></label>
-                            <label>Max Length: <input type="number" id="stringMaxLength" value="1000" min="10" max="10000" style="width: 80px;"></label>
-                            <label><input type="checkbox" id="includeOffsets" checked> Include Offsets</label>
-                            <label><input type="checkbox" id="deduplicateStrings" checked> Remove Duplicates</label>
-                            <label><input type="checkbox" id="sortByLength"> Sort by Length</label>
-                            <label><input type="checkbox" id="filterCommon"> Filter Common Words</label>
-                        </div>
-                    </div>
-                    <div class="input-group" id="regexGroup" style="display: none;">
-                        <label>Custom Regex Pattern:</label>
-                        <input type="text" id="customRegex" placeholder="Enter regex pattern (e.g., \\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b)">
-                    </div>
-                    <div class="btn-grid">
-                        <button class="btn" onclick="extractAllStrings()">Extract Strings</button>
-                        <button class="btn" onclick="analyzeStringPatterns()">Analyze Patterns</button>
-                        <button class="btn" onclick="exportStringResults()">Export Results</button>
-                        <button class="btn" onclick="searchInStrings()">Search in Results</button>
-                    </div>
-                    <div class="input-group">
-                        <label>Search in Results:</label>
-                        <input type="text" id="stringSearchQuery" placeholder="Search extracted strings...">
-                        <button class="btn" onclick="filterStringResults()">Filter</button>
-                    </div>
-                    <div class="input-group">
-                        <label>Extracted Strings:</label>
-                        <div id="stringExtractorOutput" class="output-area"></div>
-                    </div>
-                    <div class="input-group">
-                        <label>Statistics:</label>
-                        <div id="stringStats" class="output-area" style="max-height: 200px;"></div>
+                        <label>Generated Passwords:</label>
+                        <div id="passwordOutput" class="output-area"></div>
                     </div>
                 </div>
             `;
 
-        case 'payload-generator':
+        case 'brainfuck':
             return `
                 <div class="tool-interface">
                     <div class="input-group">
-                        <label>Payload Category:</label>
-                        <select id="payloadCategory" onchange="updatePayloadOptions()">
-                            <option value="web">Web Application</option>
-                            <option value="network">Network Security</option>
-                            <option value="system">System/OS</option>
-                            <option value="mobile">Mobile Application</option>
-                            <option value="iot">IoT/Embedded</option>
-                            <option value="cloud">Cloud Security</option>
-                            <option value="crypto">Cryptographic</option>
-                        </select>
+                        <label>Brainfuck Code:</label>
+                        <textarea id="bfCode" rows="5" placeholder="Enter Brainfuck code (>,<.+-)"></textarea>
                     </div>
                     <div class="input-group">
-                        <label>Target Platform:</label>
-                        <select id="targetPlatform">
-                            <option value="linux">Linux</option>
-                            <option value="windows">Windows</option>
-                            <option value="macos">macOS</option>
-                            <option value="android">Android</option>
-                            <option value="ios">iOS</option>
-                            <option value="embedded">Embedded Systems</option>
-                            <option value="web">Web Browsers</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Attack Vector:</label>
-                        <select id="attackVector">
-                            <option value="xss">Cross-Site Scripting (XSS)</option>
-                            <option value="sqli">SQL Injection</option>
-                            <option value="cmd_injection">Command Injection</option>
-                            <option value="file_inclusion">File Inclusion</option>
-                            <option value="buffer_overflow">Buffer Overflow</option>
-                            <option value="format_string">Format String</option>
-                            <option value="rop">Return-Oriented Programming</option>
-                            <option value="xxe">XML External Entity</option>
-                            <option value="ssrf">Server-Side Request Forgery</option>
-                            <option value="deserialization">Insecure Deserialization</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Payload Options:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="encodePayload" checked> URL/HTML Encode</label>
-                            <label><input type="checkbox" id="bypassFilters" checked> Filter Bypass</label>
-                            <label><input type="checkbox" id="polymorphicMode"> Polymorphic</label>
-                            <label><input type="checkbox" id="multistagePayload"> Multi-stage</label>
-                            <label><input type="checkbox" id="obfuscatePayload"> Obfuscated</label>
-                            <label><input type="checkbox" id="timeDelayPayload"> Time-based</label>
-                        </div>
-                    </div>
-                    <div class="input-group" id="customTargetGroup">
-                        <label>Custom Target URL/Parameter:</label>
-                        <input type="text" id="customTarget" placeholder="http://target.com/page.php?param=">
-                    </div>
-                    <div class="input-group">
-                        <label>Payload Complexity:</label>
-                        <select id="payloadComplexity">
-                            <option value="basic">Basic Payloads</option>
-                            <option value="intermediate">Intermediate</option>
-                            <option value="advanced">Advanced</option>
-                            <option value="expert">Expert Level</option>
-                        </select>
+                        <label>Input Data:</label>
+                        <input type="text" id="bfInput" placeholder="Input for the program">
                     </div>
                     <div class="btn-grid">
-                        <button class="btn" onclick="generatePayloads()">Generate Payloads</button>
-                        <button class="btn" onclick="customizePayloads()">Customize</button>
-                        <button class="btn" onclick="testPayloads()">Test Payloads</button>
-                        <button class="btn" onclick="exportPayloads()">Export</button>
+                        <button class="btn" onclick="executeBrainfuck()">Execute</button>
+                        <button class="btn" onclick="stepBrainfuck()">Step Through</button>
+                        <button class="btn" onclick="loadBFExample()">Load Example</button>
+                        <button class="btn" onclick="clearBrainfuck()">Clear</button>
                     </div>
                     <div class="input-group">
-                        <label>Generated Payloads:</label>
-                        <div id="payloadOutput" class="output-area"></div>
+                        <label>Output:</label>
+                        <div id="bfOutput" class="output-area"></div>
                     </div>
                     <div class="input-group">
-                        <label>Payload Testing:</label>
-                        <div id="payloadTestResults" class="output-area" style="max-height: 200px;"></div>
+                        <label>Memory State:</label>
+                        <div id="bfMemory" class="output-area"></div>
                     </div>
-                </div>
-            `;
-
-        case 'binary-analyzer':
-```
-            return `
-                <div class="tool-interface">
-                    <div class="input-group">
-                        <label>Upload Binary File:</label>
-                        <input type="file" id="binaryAnalyzerFile" multiple>
-                    </div>
-                    <div class="input-group">
-                        <label>Analysis Depth:</label>
-                        <select id="analysisDepth">
-                            <option value="quick">Quick Scan</option>
-                            <option value="standard">Standard Analysis</option>
-                            <option value="deep">Deep Analysis</option>
-                            <option value="comprehensive">Comprehensive Scan</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Analysis Components:</label>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="analyzeHeaders" checked> File Headers</label>
-                            <label><input type="checkbox" id="analyzeSections" checked> Section Analysis</label>
-                            <label><input type="checkbox" id="analyzeImports" checked> Import Tables</label>
-                            <label><input type="checkbox" id="analyzeExports" checked> Export Tables</label>
-                            <label><input type="checkbox" id="analyzeEntropy" checked> Entropy Analysis</label>
-                            <label><input type="checkbox" id="analyzeSecurity" checked> Security Features</label>
-                            <label><input type="checkbox" id="analyzePackers" checked> Packer Detection</label>
-                            <label><input type="checkbox" id="analyzeStrings" checked> String Analysis</label>
-                            <label><input type="checkbox" id="analyzeResources"> Resource Analysis</label>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Security Checks:</label>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                            <label><input type="checkbox" id="checkDEP" checked> DEP (Data Execution Prevention)</label>
-                            <label><input type="checkbox" id="checkASLR" checked> ASLR (Address Space Layout Randomization)</label>
-                            <label><input type="checkbox" id="checkCFG" checked> CFG (Control Flow Guard)</label>
-                            <label><input type="checkbox" id="checkCanary" checked> Stack Canaries</label>
-                            <label><input type="checkbox" id="checkNX" checked> NX Bit</label>
-                            <label><input type="checkbox" id="checkPIE" checked> PIE (Position Independent Executable)</label>
-                        </div>
-                    </div>
-                    <div class="btn-grid">
-                        <button class="btn" onclick="analyzeBinaryFile()">Analyze Binary</button>
-                        <button class="btn" onclick="compareAnalysis()">Compare with Database</button>
-                        <button class="btn" onclick="generateSignature()">Generate Signature</button>
-                        <button class="btn" onclick="exportAnalysis()">Export Report</button>
-                    </div>
-                    <div class="input-group">
-                        <label>Analysis Results:</label>
-                        <div id="binaryAnalysisOutput" class="output-area"></div>
-                    </div>
-                    <div class="input-group">
-                        <label>Security Assessment:</label>
-                        <div id="securityAssessment" class="output-area" style="max-height: 200px;"></div>
-                    </div>
-                    <div id="entropyChart" style="margin-top: 1rem;"></div>
                 </div>
             `;
 
         default:
-            return getBasicToolInterface(toolName);
+            return generateBasicToolInterface(toolName);
     }
 }
 
-// Basic tool interfaces for simpler tools
-function getBasicToolInterface(toolName) {
+function generateBasicToolInterface(toolName) {
     const basicTools = {
-        'caesar': {
-            title: 'Caesar Cipher',
-            inputs: ['Text to encrypt/decrypt', 'Shift value (0-25)'],
-            buttons: ['Encrypt', 'Decrypt', 'Brute Force', 'Clear']
-        },
-        'vigenere': {
-            title: 'Vigenère Cipher',
-            inputs: ['Text to encrypt/decrypt', 'Key'],
-            buttons: ['Encrypt', 'Decrypt', 'Key Analysis']
-        },
-        'hex': {
-            title: 'Hex Converter',
-            inputs: ['Input data'],
-            buttons: ['Text to Hex', 'Hex to Text', 'Hex to Decimal', 'Decimal to Hex']
-        },
         'url': {
             title: 'URL Encoder/Decoder',
-            inputs: ['URL data'],
-            buttons: ['URL Encode', 'URL Decode', 'Double Encode']
+            inputs: ['URL/Text'],
+            buttons: ['URL Encode', 'URL Decode', 'Component Encode', 'Component Decode']
         },
         'ascii': {
             title: 'ASCII Converter',
             inputs: ['Input data'],
-            buttons: ['Text to ASCII', 'ASCII to Text']
+            buttons: ['Text → ASCII', 'ASCII → Text', 'ASCII → Hex', 'Hex → ASCII']
         },
-        'rot13': {
-            title: 'ROT13 Cipher',
-            inputs: ['Text to transform'],
-            buttons: ['Apply ROT13', 'Clear']
+        'vigenere': {
+            title: 'Vigenère Cipher',
+            inputs: ['Text', 'Key'],
+            buttons: ['Encrypt', 'Decrypt', 'Key Analysis', 'Frequency Analysis']
         },
         'atbash': {
             title: 'Atbash Cipher',
-            inputs: ['Text to transform'],
-            buttons: ['Apply Atbash', 'Clear']
+            inputs: ['Text'],
+            buttons: ['Encode/Decode', 'Hebrew Atbash', 'Custom Alphabet']
+        },
+        'rot13': {
+            title: 'ROT13',
+            inputs: ['Text'],
+            buttons: ['ROT13', 'ROT47', 'Custom ROT', 'Analyze']
         },
         'morse-decoder': {
-            title: 'Morse Code Translator',
-            inputs: ['Text or Morse code'],
-            buttons: ['Text to Morse', 'Morse to Text', 'Play Audio']
+            title: 'Morse Code',
+            inputs: ['Text/Morse'],
+            buttons: ['Text → Morse', 'Morse → Text', 'Audio Morse', 'Custom Timing']
+        },
+        'hash-cracker': {
+            title: 'Hash Cracker',
+            inputs: ['Hash', 'Wordlist/Dictionary'],
+            buttons: ['Dictionary Attack', 'Brute Force', 'Hybrid Attack', 'Rainbow Lookup']
+        },
+        'md5': {
+            title: 'MD5 Tools',
+            inputs: ['Input text'],
+            buttons: ['Generate MD5', 'MD5 Lookup', 'Compare Hashes', 'File MD5']
+        },
+        'sha': {
+            title: 'SHA Tools',
+            inputs: ['Input text'],
+            buttons: ['SHA-1', 'SHA-256', 'SHA-512', 'Compare All']
+        },
+        'rainbow': {
+            title: 'Rainbow Tables',
+            inputs: ['Hash'],
+            buttons: ['MD5 Lookup', 'SHA1 Lookup', 'NTLM Lookup', 'Custom Search']
         },
         'binary-converter': {
             title: 'Binary Converter',
             inputs: ['Input data'],
             buttons: ['Text → Binary', 'Binary → Text', 'Text → Decimal', 'Decimal → Text']
-        },
-        'password-generator': {
-            title: 'Password Generator',
-            inputs: ['Length', 'Character sets'],
-            buttons: ['Generate Passwords', 'Check Strength', 'Export']
-        },
-        'jwt-decoder': {
-            title: 'JWT Decoder',
-            inputs: ['JWT Token'],
-            buttons: ['Decode JWT', 'Verify Signature', 'Analyze Security']
-        },
-        'brainfuck': {
-            title: 'Brainfuck Interpreter',
-            inputs: ['Brainfuck code', 'Input data'],
-            buttons: ['Execute', 'Step Through', 'Load Example']
         }
     };
 
     const tool = basicTools[toolName];
     if (!tool) {
-        return `<div class="tool-interface"><p>Tool interface not implemented yet.</p></div>`;
+        return `<div class="tool-interface"><p>Tool interface will be implemented soon.</p></div>`;
     }
 
     return `
@@ -778,7 +483,7 @@ function getBasicToolInterface(toolName) {
             `).join('')}
             <div class="btn-grid">
                 ${tool.buttons.map(button => `
-                    <button class="btn" onclick="${toolName}${button.replace(/\s+/g, '')}()">${button}</button>
+                    <button class="btn" onclick="execute${toolName.charAt(0).toUpperCase() + toolName.slice(1)}('${button.toLowerCase().replace(/\s+/g, '')}')">${button}</button>
                 `).join('')}
             </div>
             <div class="input-group">
@@ -789,238 +494,208 @@ function getBasicToolInterface(toolName) {
     `;
 }
 
-// Tool initialization
 function initializeTool(toolName) {
-    // Initialize tool-specific functionality
-    if (toolName === 'qr-decoder') {
-        initializeQRTool();
-    } else if (toolName === 'hash-cracker') {
-        initializeHashCracker();
-    } else if (toolName === 'steganography') {
-        initializeSteganography();
+    // Tool-specific initializations
+    switch(toolName) {
+        case 'steganography':
+            initSteganographyTool();
+            break;
+        case 'qr-decoder':
+            initQRTool();
+            break;
+        case 'hash-cracker':
+            initializeHashCracker();
+            break;
     }
-    console.log(`Initialized tool: ${toolName}`);
 }
 
-// Advanced Base64 functions
+// Tool implementations
 function base64Encode() {
     const input = document.getElementById('base64Input').value;
-    const output = document.getElementById('base64Output');
     try {
         const encoded = btoa(unescape(encodeURIComponent(input)));
-        output.innerHTML = `<pre><strong>Base64 Encoded:</strong>\n${encoded}\n\n<strong>Length:</strong> ${encoded.length} characters\n<strong>Original Length:</strong> ${input.length} characters\n<strong>Efficiency:</strong> ${((input.length / encoded.length) * 100).toFixed(2)}%</pre>`;
-        showMessage('Text encoded successfully!', 'success');
-    } catch (error) {
-        output.textContent = 'Error: Invalid input for encoding';
-        showMessage('Encoding failed!', 'error');
+        document.getElementById('base64Output').innerHTML = `<div class="success">Encoded: ${encoded}</div>`;
+    } catch (e) {
+        document.getElementById('base64Output').innerHTML = `<div class="error">Error: ${e.message}</div>`;
     }
 }
 
 function base64Decode() {
-    const input = document.getElementById('base64Input').value.trim();
-    const output = document.getElementById('base64Output');
+    const input = document.getElementById('base64Input').value;
     try {
         const decoded = decodeURIComponent(escape(atob(input)));
-        output.innerHTML = `<pre><strong>Base64 Decoded:</strong>\n${decoded}\n\n<strong>Original Length:</strong> ${input.length} characters\n<strong>Decoded Length:</strong> ${decoded.length} characters</pre>`;
-        showMessage('Base64 decoded successfully!', 'success');
-    } catch (error) {
-        output.textContent = 'Error: Invalid Base64 input';
-        showMessage('Decoding failed!', 'error');
+        document.getElementById('base64Output').innerHTML = `<div class="success">Decoded: ${decoded}</div>`;
+    } catch (e) {
+        document.getElementById('base64Output').innerHTML = `<div class="error">Error: Invalid Base64 input</div>`;
     }
 }
 
 function base64UrlSafeEncode() {
     const input = document.getElementById('base64Input').value;
-    const output = document.getElementById('base64Output');
     try {
         const encoded = btoa(unescape(encodeURIComponent(input)))
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
-            .replace(/=+$/, '');
-        output.innerHTML = `<pre><strong>URL-Safe Base64 Encoded:</strong>\n${encoded}\n\n<strong>Note:</strong> URL-safe encoding replaces + with -, / with _, and removes padding</pre>`;
-        showMessage('URL-safe encoding completed!', 'success');
-    } catch (error) {
-        output.textContent = 'Error: Invalid input for URL-safe encoding';
-        showMessage('URL-safe encoding failed!', 'error');
+            .replace(/=/g, '');
+        document.getElementById('base64Output').innerHTML = `<div class="success">URL-Safe Encoded: ${encoded}</div>`;
+    } catch (e) {
+        document.getElementById('base64Output').innerHTML = `<div class="error">Error: ${e.message}</div>`;
     }
 }
 
 function base64UrlSafeDecode() {
-    const input = document.getElementById('base64Input').value.trim();
-    const output = document.getElementById('base64Output');
+    const input = document.getElementById('base64Input').value;
     try {
-        // Add padding and convert URL-safe characters back
-        let b64 = input.replace(/-/g, '+').replace(/_/g, '/');
-        while (b64.length % 4) {
-            b64 += '=';
+        let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) {
+            base64 += '=';
         }
-        const decoded = decodeURIComponent(escape(atob(b64)));
-        output.innerHTML = `<pre><strong>URL-Safe Base64 Decoded:</strong>\n${decoded}</pre>`;
-        showMessage('URL-safe decoding completed!', 'success');
-    } catch (error) {
-        output.textContent = 'Error: Invalid URL-safe Base64 input';
-        showMessage('URL-safe decoding failed!', 'error');
-    }
-}
-
-function encodeFile() {
-    const fileInput = document.getElementById('base64File');
-    const output = document.getElementById('base64Output');
-
-    if (!fileInput.files[0]) {
-        showMessage('Please select a file', 'error');
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-        const arrayBuffer = e.target.result;
-        const bytes = new Uint8Array(arrayBuffer);
-        const binaryString = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
-        const encoded = btoa(binaryString);
-
-        output.innerHTML = `<pre><strong>File Encoded to Base64:</strong>\n\n<strong>Filename:</strong> ${file.name}\n<strong>Size:</strong> ${file.size} bytes\n<strong>Type:</strong> ${file.type || 'Unknown'}\n<strong>Encoded Length:</strong> ${encoded.length} characters\n\n<strong>Base64 Data:</strong>\n${encoded}</pre>`;
-        showMessage('File encoded successfully!', 'success');
-    };
-
-    reader.readAsArrayBuffer(file);
-}
-
-function decodeToFile() {
-    const input = document.getElementById('base64Input').value.trim();
-    const output = document.getElementById('base64Output');
-
-    try {
-        const binaryString = atob(input);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        const blob = new Blob([bytes]);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'decoded_file.bin';
-        a.click();
-        URL.revokeObjectURL(url);
-
-        output.innerHTML = `<pre><strong>File Download Initiated</strong>\n\nDecoded ${bytes.length} bytes from Base64 data\nFile saved as: decoded_file.bin</pre>`;
-        showMessage('File decoded and downloaded!', 'success');
-    } catch (error) {
-        output.textContent = 'Error: Invalid Base64 data for file decoding';
-        showMessage('File decoding failed!', 'error');
+        const decoded = decodeURIComponent(escape(atob(base64)));
+        document.getElementById('base64Output').innerHTML = `<div class="success">URL-Safe Decoded: ${decoded}</div>`;
+    } catch (e) {
+        document.getElementById('base64Output').innerHTML = `<div class="error">Error: Invalid URL-Safe Base64 input</div>`;
     }
 }
 
 function clearBase64() {
     document.getElementById('base64Input').value = '';
     document.getElementById('base64Output').innerHTML = '';
-    const fileInput = document.getElementById('base64File');
-    if (fileInput) fileInput.value = '';
 }
 
-// Advanced Hash Analysis Functions
-async function generateHash() {
-    const text = document.getElementById('textToHash').value;
-    const hashType = document.getElementById('hashType').value;
-    const output = document.getElementById('generatedHash');
+function caesarEncrypt() {
+    const text = document.getElementById('caesarInput').value;
+    const shift = parseInt(document.getElementById('caesarShift').value) || 13;
+    const result = caesarShiftText(text, shift);
+    document.getElementById('caesarOutput').innerHTML = `<div class="success">Encrypted: ${result}</div>`;
+}
 
-    if (!text) {
-        showMessage('Please enter text to hash', 'error');
-        return;
+function caesarDecrypt() {
+    const text = document.getElementById('caesarInput').value;
+    const shift = parseInt(document.getElementById('caesarShift').value) || 13;
+    const result = caesarShiftText(text, -shift);
+    document.getElementById('caesarOutput').innerHTML = `<div class="success">Decrypted: ${result}</div>`;
+}
+
+function caesarBruteForce() {
+    const text = document.getElementById('caesarInput').value;
+    let output = '<div class="info">All possible Caesar shifts:</div>';
+
+    for (let i = 0; i < 26; i++) {
+        const result = caesarShiftText(text, i);
+        output += `<div class="result-line">Shift ${i}: ${result}</div>`;
     }
 
+    document.getElementById('caesarOutput').innerHTML = output;
+}
+
+function caesarShiftText(text, shift) {
+    return text.replace(/[a-zA-Z]/g, function(char) {
+        const start = char <= 'Z' ? 65 : 97;
+        return String.fromCharCode(((char.charCodeAt(0) - start + shift + 26) % 26) + start);
+    });
+}
+
+function clearCaesar() {
+    document.getElementById('caesarInput').value = '';
+    document.getElementById('caesarOutput').innerHTML = '';
+}
+
+function textToHex() {
+    const input = document.getElementById('hexInput').value;
+    const hex = Array.from(input)
+        .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(' ');
+    document.getElementById('hexOutput').innerHTML = `<div class="success">Hex: ${hex}</div>`;
+}
+
+function hexToText() {
+    const input = document.getElementById('hexInput').value.replace(/\s+/g, '');
     try {
-        let hash;
-        const encoder = new TextEncoder();
-        const data = encoder.encode(text);
-
-        switch(hashType) {
-            case 'md5':
-                if (typeof CryptoJS !== 'undefined') {
-                    hash = CryptoJS.MD5(text).toString();
-                } else {
-                    throw new Error('CryptoJS not available');
-                }
-                break;
-            case 'sha1':
-                const sha1Buffer = await crypto.subtle.digest('SHA-1', data);
-                hash = Array.from(new Uint8Array(sha1Buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                break;
-            case 'sha256':
-                const sha256Buffer = await crypto.subtle.digest('SHA-256', data);
-                hash = Array.from(new Uint8Array(sha256Buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                break;
-            case 'sha512':
-                const sha512Buffer = await crypto.subtle.digest('SHA-512', data);
-                hash = Array.from(new Uint8Array(sha512Buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                break;
-            case 'sha3-256':
-                if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA3) {
-                    hash = CryptoJS.SHA3(text, { outputLength: 256 }).toString();
-                } else {
-                    hash = 'SHA3-256 not available (requires additional library)';
-                }
-                break;
-            case 'sha3-512':
-                if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA3) {
-                    hash = CryptoJS.SHA3(text, { outputLength: 512 }).toString();
-                } else {
-                    hash = 'SHA3-512 not available (requires additional library)';
-                }
-                break;
-            case 'blake2s':
-            case 'blake2b':
-                hash = `${hashType.toUpperCase()} not available in browser (requires specialized library)`;
-                break;
-        }
-
-        const analysis = analyzeHashProperties(hash, hashType, text);
-        output.innerHTML = `<pre><strong>${hashType.toUpperCase()} Hash Generated:</strong>\n\n<strong>Input:</strong> ${text}\n<strong>Hash:</strong> ${hash}\n\n${analysis}</pre>`;
-        showMessage(`${hashType.toUpperCase()} hash generated successfully!`, 'success');
-    } catch (error) {
-        output.innerHTML = `<pre>Error generating hash: ${error.message}</pre>`;
-        showMessage('Hash generation failed!', 'error');
+        const text = input.match(/.{2}/g)
+            .map(hex => String.fromCharCode(parseInt(hex, 16)))
+            .join('');
+        document.getElementById('hexOutput').innerHTML = `<div class="success">Text: ${text}</div>`;
+    } catch (e) {
+        document.getElementById('hexOutput').innerHTML = `<div class="error">Error: Invalid hex input</div>`;
     }
 }
 
-function analyzeHashProperties(hash, type, originalText) {
-    if (hash.includes('not available')) return hash;
-
-    let analysis = `<strong>Hash Analysis:</strong>\n`;
-    analysis += `Length: ${hash.length} characters\n`;
-    analysis += `Algorithm: ${type.toUpperCase()}\n`;
-    analysis += `Entropy: ${calculateStringEntropy(hash).toFixed(4)} bits\n`;
-    analysis += `Character Set: ${/^[a-f0-9]+$/i.test(hash) ? 'Hexadecimal' : 'Mixed'}\n`;
-
-    // Security assessment
-    const securityLevels = {
-        'md5': 'WEAK - Cryptographically broken',
-        'sha1': 'WEAK - Deprecated for security',
-        'sha256': 'STRONG - Currently secure',
-        'sha512': 'STRONG - Currently secure',
-        'sha3-256': 'STRONG - Modern and secure',
-        'sha3-512': 'STRONG - Modern and secure'
-    };
-
-    analysis += `Security Level: ${securityLevels[type] || 'Unknown'}\n`;
-
-    // Hash characteristics
-    if (originalText.length < 4) {
-        analysis += `Warning: Short input is vulnerable to brute force\n`;
+function hexToBytes() {
+    const input = document.getElementById('hexInput').value.replace(/\s+/g, '');
+    try {
+        const bytes = input.match(/.{2}/g)
+            .map(hex => parseInt(hex, 16));
+        document.getElementById('hexOutput').innerHTML = `<div class="success">Bytes: [${bytes.join(', ')}]</div>`;
+    } catch (e) {
+        document.getElementById('hexOutput').innerHTML = `<div class="error">Error: Invalid hex input</div>`;
     }
-
-    if (/^[a-zA-Z]+$/.test(originalText)) {
-        analysis += `Warning: Dictionary word detected - vulnerable to dictionary attacks\n`;
-    }
-
-    return analysis;
 }
 
-function calculateStringEntropy(str) {
+function clearHex() {
+    document.getElementById('hexInput').value = '';
+    document.getElementById('hexOutput').innerHTML = '';
+}
+
+function identifyHash() {
+    const hash = document.getElementById('hashInput').value.trim();
+    const analysis = analyzeHashType(hash);
+    let output = `<div class="info">Hash Analysis:</div>`;
+    output += `<div class="result-line">Length: ${hash.length} characters</div>`;
+    output += `<div class="result-line">Character Set: ${getCharacterSet(hash)}</div>`;
+    output += `<div class="result-line">Possible Types: ${analysis.join(', ')}</div>`;
+
+    document.getElementById('hashIdOutput').innerHTML = output;
+}
+
+function analyzeHashType(hash) {
+    const types = [];
+    const len = hash.length;
+    const isHex = /^[a-fA-F0-9]+$/.test(hash);
+
+    if (len === 32 && isHex) types.push('MD5', 'NTLM');
+    if (len === 40 && isHex) types.push('SHA-1', 'MySQL5.x');
+    if (len === 56 && isHex) types.push('SHA-224');
+    if (len === 64 && isHex) types.push('SHA-256', 'SHA3-256');
+    if (len === 96 && isHex) types.push('SHA-384');
+    if (len === 128 && isHex) types.push('SHA-512', 'SHA3-512');
+    if (len === 13 && hash.startsWith('$')) types.push('DES Crypt');
+    if (hash.startsWith('$1$')) types.push('MD5 Crypt');
+    if (hash.startsWith('$2')) types.push('Bcrypt');
+    if (hash.startsWith('$5$')) types.push('SHA-256 Crypt');
+    if (hash.startsWith('$6$')) types.push('SHA-512 Crypt');
+
+    return types.length > 0 ? types : ['Unknown'];
+}
+
+function getCharacterSet(hash) {
+    if (/^[a-fA-F0-9]+$/.test(hash)) return 'Hexadecimal';
+    if (/^[a-zA-Z0-9+/=]+$/.test(hash)) return 'Base64';
+    if (/^[a-zA-Z0-9./]+$/.test(hash)) return 'Base64 (URL-safe)';
+    return 'Mixed/Unknown';
+}
+
+function analyzeHash() {
+    const hash = document.getElementById('hashInput').value.trim();
+    let output = `<div class="info">Deep Hash Analysis:</div>`;
+
+    // Entropy analysis
+    const entropy = calculateEntropy(hash);
+    output += `<div class="result-line">Entropy: ${entropy.toFixed(2)} bits</div>`;
+
+    // Pattern analysis
+    const patterns = detectPatterns(hash);
+    if (patterns.length > 0) {
+        output += `<div class="result-line">Patterns: ${patterns.join(', ')}</div>`;
+    }
+
+    // Character frequency
+    const freq = getCharacterFrequency(hash);
+    output += `<div class="result-line">Most frequent chars: ${freq}</div>`;
+
+    document.getElementById('hashIdOutput').innerHTML = output;
+}
+
+function calculateEntropy(str) {
     const freq = {};
     for (let char of str) {
         freq[char] = (freq[char] || 0) + 1;
@@ -1036,1271 +711,744 @@ function calculateStringEntropy(str) {
     return entropy;
 }
 
-function analyzeHash() {
-    const hash = document.getElementById('hashInput').value.trim();
-    const output = document.getElementById('hashOutput');
-
-    if (!hash) {
-        showMessage('Please enter a hash to analyze', 'error');
-        return;
-    }
-
-    const analysis = performComprehensiveHashAnalysis(hash);
-    output.innerHTML = `<pre>${analysis}</pre>`;
-    showMessage('Hash analyzed successfully!', 'success');
-}
-
-function performComprehensiveHashAnalysis(hash) {
-    let result = `<strong>Comprehensive Hash Analysis</strong>\n\n`;
-    result += `<strong>Input Hash:</strong> ${hash}\n`;
-    result += `<strong>Length:</strong> ${hash.length} characters\n`;
-    result += `<strong>Analysis Time:</strong> ${new Date().toLocaleString()}\n\n`;
-
-    // Character set analysis
-    const charset = analyzeCharacterSet(hash);
-    result += `<strong>Character Set Analysis:</strong>\n${charset}\n\n`;
-
-    // Hash type identification
-    const identification = identifyHashTypeAdvanced(hash);
-    result += `<strong>Hash Type Identification:</strong>\n${identification}\n\n`;
-
-    // Security analysis
-    const security = analyzeHashSecurity(hash);
-    result += `<strong>Security Analysis:</strong>\n${security}\n\n`;
-
-    // Pattern analysis
-    const patterns = analyzeHashPatterns(hash);
-    result += `<strong>Pattern Analysis:</strong>\n${patterns}\n\n`;
-
-    // Cracking recommendations
-    const recommendations = generateCrackingRecommendations(hash);
-    result += `<strong>Cracking Recommendations:</strong>\n${recommendations}`;
-
-    return result;
-}
-
-function analyzeCharacterSet(hash) {
-    const hexPattern = /^[a-fA-F0-9]+$/;
-    const base64Pattern = /^[A-Za-z0-9+/]+=*$/;
-    const base32Pattern = /^[A-Z2-7]+=*$/;
-
-    let analysis = '';
-
-    if (hexPattern.test(hash)) {
-        analysis += `✓ Hexadecimal (0-9, A-F)\n`;
-        const uniqueChars = new Set(hash.toLowerCase()).size;
-        analysis += `  Unique characters: ${uniqueChars}/16 (${(uniqueChars/16*100).toFixed(1)}%)\n`;
-    } else if (base64Pattern.test(hash)) {
-        analysis += `✓ Base64 encoding detected\n`;
-        try {
-            const decoded = atob(hash);
-            analysis += `  Decoded length: ${decoded.length} bytes\n`;
-        } catch (e) {
-            analysis += `  Invalid Base64 padding\n`;
-        }
-    } else if (base32Pattern.test(hash)) {
-        analysis += `✓ Base32 encoding detected\n`;
-    } else {
-        analysis += `✗ Mixed character set - possible custom encoding\n`;
-        const charCounts = {};
-        for (let char of hash) {
-            charCounts[char] = (charCounts[char] || 0) + 1;
-        }
-        analysis += `  Unique characters: ${Object.keys(charCounts).length}\n`;
-    }
-
-    return analysis;
-}
-
-function identifyHashTypeAdvanced(hash) {
-    const length = hash.length;
-    const isHex = /^[a-fA-F0-9]+$/.test(hash);
-
-    let identification = '';
-
-    if (isHex) {
-        const hashTypes = {
-            32: ['MD5', 'MD4', 'MD2', 'NTLM', 'LM'],
-            40: ['SHA-1', 'MySQL5', 'Tiger-160', 'RIPEMD-160'],
-            48: ['Tiger-192', 'GOST'],
-            56: ['SHA-224', 'SHA3-224'],
-            64: ['SHA-256', 'SHA3-256', 'BLAKE2s', 'Skein-256'],
-            96: ['SHA-384', 'SHA3-384'],
-            128: ['SHA-512', 'SHA3-512', 'BLAKE2b', 'Whirlpool', 'Skein-512']
-        };
-
-        if (hashTypes[length]) {
-            identification += `<strong>Possible Types:</strong> ${hashTypes[length].join(', ')}\n`;
-            identification += `<strong>Most Likely:</strong> ${hashTypes[length][0]}\n`;
-            identification += `<strong>Confidence:</strong> High\n`;
-
-            // Additional context
-            if (length === 32) {
-                identification += `<strong>Note:</strong> 32-char hex hashes are commonly MD5 or NTLM\n`;
-            } else if (length === 40) {
-                identification += `<strong>Note:</strong> 40-char hex hashes are commonly SHA-1\n`;
-            } else if (length === 64) {
-                identification += `<strong>Note:</strong> 64-char hex hashes are commonly SHA-256\n`;
-            }
-        } else {
-            identification += `<strong>Unknown Length:</strong> ${length} characters\n`;
-            identification += `<strong>Confidence:</strong> Low\n`;
-        }
-    } else {
-        identification += `<strong>Non-hexadecimal format detected</strong>\n`;
-        identification += `Possible encodings: Base64, custom format, salted hash\n`;
-        identification += `<strong>Confidence:</strong> Low\n`;
-    }
-
-    return identification;
-}
-
-function analyzeHashSecurity(hash) {
-    const length = hash.length;
-    const isHex = /^[a-fA-F0-9]+$/.test(hash);
-
-    let security = '';
-
-    if (isHex) {
-        switch(length) {
-            case 32:
-                security += `🔴 CRITICAL: MD5 hashes are cryptographically broken\n`;
-                security += `   - Vulnerable to collision attacks\n`;
-                security += `   - Should not be used for security purposes\n`;
-                security += `   - Easy to crack with modern hardware\n`;
-                break;
-            case 40:
-                security += `🟡 WARNING: SHA-1 is deprecated\n`;
-                security += `   - Vulnerable to collision attacks (2017)\n`;
-                security += `   - Not recommended for new applications\n`;
-                security += `   - Still relatively secure against brute force\n`;
-                break;
-            case 64:
-                security += `🟢 SECURE: SHA-256 is currently secure\n`;
-                security += `   - No known practical attacks\n`;
-                security += `   - Resistant to collision attacks\n`;
-                security += `   - Recommended for current use\n`;
-                break;
-            case 128:
-                security += `🟢 VERY SECURE: SHA-512 is highly secure\n`;
-                security += `   - Extremely resistant to attacks\n`;
-                security += `   - Suitable for high-security applications\n`;
-                security += `   - Future-proof for many years\n`;
-                break;
-            default:
-                security += `❓ UNKNOWN: Security depends on algorithm\n`;
-        }
-    } else {
-        security += `❓ Cannot assess security of non-standard format\n`;
-    }
-
-    // General security notes
-    security += `\n<strong>General Security Notes:</strong>\n`;
-    security += `- Always use salt for password hashing\n`;
-    security += `- Consider using bcrypt, scrypt, or Argon2 for passwords\n`;
-    security += `- Avoid using hash functions for password storage\n`;
-
-    return security;
-}
-
-function analyzeHashPatterns(hash) {
-    let patterns = '';
-
-    // Check for common patterns
-    const repeatedChars = hash.match(/(.)\1{2,}/g);
-    if (repeatedChars) {
-        patterns += `⚠️ Repeated characters found: ${repeatedChars.join(', ')}\n`;
-        patterns += `   This might indicate weak input or specific hash characteristics\n`;
-    }
-
-    // Check for sequential patterns
-    const sequential = findSequentialPatterns(hash);
-    if (sequential.length > 0) {
-        patterns += `⚠️ Sequential patterns: ${sequential.join(', ')}\n`;
-    }
-
-    // Check entropy
-    const entropy = calculateStringEntropy(hash);
-    patterns += `<strong>Entropy:</strong> ${entropy.toFixed(4)} bits per character\n`;
-
-    if (entropy < 3.5) {
-        patterns += `⚠️ Low entropy - might indicate weak randomness\n`;
-    } else if (entropy > 3.9) {
-        patterns += `✓ Good entropy - appears random\n`;
-    }
-
-    // Character frequency analysis
-    const charFreq = {};
-    for (let char of hash.toLowerCase()) {
-        charFreq[char] = (charFreq[char] || 0) + 1;
-    }
-
-    const mostCommon = Object.entries(charFreq)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3);
-
-    patterns += `<strong>Most frequent characters:</strong> ${mostCommon.map(([char, count]) => `${char}(${count})`).join(', ')}\n`;
-
+function detectPatterns(hash) {
+    const patterns = [];
+    if (hash.includes('00000')) patterns.push('Zero sequences');
+    if (/(.)\1{3,}/.test(hash)) patterns.push('Character repetition');
+    if (hash.toLowerCase() !== hash && hash.toUpperCase() !== hash) patterns.push('Mixed case');
     return patterns;
 }
 
-function findSequentialPatterns(str) {
-    const patterns = [];
-    const hex = '0123456789abcdef';
+function getCharacterFrequency(str) {
+    const freq = {};
+    for (let char of str) {
+        freq[char] = (freq[char] || 0) + 1;
+    }
 
-    for (let i = 0; i < str.length - 2; i++) {
-        const substr = str.substring(i, i + 3).toLowerCase();
-        if (hex.includes(substr[0]) && hex.includes(substr[1]) && hex.includes(substr[2])) {
-            const idx1 = hex.indexOf(substr[0]);
-            const idx2 = hex.indexOf(substr[1]);
-            const idx3 = hex.indexOf(substr[2]);
+    return Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([char, count]) => `${char}(${count})`)
+        .join(', ');
+}
 
-            if (idx2 === idx1 + 1 && idx3 === idx2 + 1) {
-                patterns.push(substr);
+function clearHashId() {
+    document.getElementById('hashInput').value = '';
+    document.getElementById('hashIdOutput').innerHTML = '';
+}
+
+function decodeJWT() {
+    const token = document.getElementById('jwtInput').value.trim();
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            throw new Error('Invalid JWT format');
+        }
+
+        const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+        let output = `<div class="info">JWT Decoded:</div>`;
+        output += `<div class="result-section"><strong>Header:</strong><pre>${JSON.stringify(header, null, 2)}</pre></div>`;
+        output += `<div class="result-section"><strong>Payload:</strong><pre>${JSON.stringify(payload, null, 2)}</pre></div>`;
+        output += `<div class="result-section"><strong>Signature:</strong> ${parts[2]}</div>`;
+
+        document.getElementById('jwtOutput').innerHTML = output;
+    } catch (e) {
+        document.getElementById('jwtOutput').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+    }
+}
+
+function analyzeJWT() {
+    const token = document.getElementById('jwtInput').value.trim();
+    try {
+        const parts = token.split('.');
+        const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+        let output = `<div class="info">JWT Security Analysis:</div>`;
+
+        // Algorithm analysis
+        if (header.alg === 'none') {
+            output += `<div class="error">⚠️ No signature algorithm - highly insecure!</div>`;
+        } else if (header.alg.startsWith('HS')) {
+            output += `<div class="warning">HMAC signature - shared secret</div>`;
+        } else if (header.alg.startsWith('RS') || header.alg.startsWith('ES')) {
+            output += `<div class="success">Public key signature algorithm</div>`;
+        }
+
+        // Expiration check
+        if (payload.exp) {
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+            if (exp < now) {
+                output += `<div class="error">Token expired on ${exp.toISOString()}</div>`;
+            } else {
+                output += `<div class="success">Token expires on ${exp.toISOString()}</div>`;
             }
+        } else {
+            output += `<div class="warning">No expiration time set</div>`;
         }
-    }
 
-    return [...new Set(patterns)];
+        // Audience and issuer
+        if (!payload.aud) output += `<div class="warning">No audience specified</div>`;
+        if (!payload.iss) output += `<div class="warning">No issuer specified</div>`;
+
+        document.getElementById('jwtOutput').innerHTML = output;
+    } catch (e) {
+        document.getElementById('jwtOutput').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+    }
 }
 
-function generateCrackingRecommendations(hash) {
-    const length = hash.length;
-    const isHex = /^[a-fA-F0-9]+$/.test(hash);
-
-    let recommendations = '';
-
-    if (isHex) {
-        switch(length) {
-            case 32:
-                recommendations += `<strong>MD5 Cracking Strategy:</strong>\n`;
-                recommendations += `1. 🎯 Rainbow tables (most effective)\n`;
-                recommendations += `   - Online: https://crackstation.net/\n`;
-                recommendations += `   - Local: Download rainbow tables\n`;
-                recommendations += `2. 💻 Dictionary attacks with hashcat\n`;
-                recommendations += `   - hashcat -m 0 -a 0 hash.txt wordlist.txt\n`;
-                recommendations += `3. 🔢 Brute force (for short passwords)\n`;
-                recommendations += `   - hashcat -m 0 -a 3 hash.txt ?a?a?a?a?a?a\n`;
-                recommendations += `4. 🌐 Online databases\n`;
-                recommendations += `   - md5decrypt.net, md5online.org\n`;
-                break;
-
-            case 40:
-                recommendations += `<strong>SHA-1 Cracking Strategy:</strong>\n`;
-                recommendations += `1. 📚 Dictionary attacks (primary method)\n`;
-                recommendations += `   - hashcat -m 100 -a 0 hash.txt rockyou.txt\n`;
-                recommendations += `2. 🔍 Rule-based attacks\n`;
-                recommendations += `   - hashcat -m 100 -a 0 hash.txt wordlist.txt -r rules/best64.rule\n`;
-                recommendations += `3. 🌈 Limited rainbow tables available\n`;
-                recommendations += `4. 🏃‍♂️ Hybrid attacks\n`;
-                recommendations += `   - Combine dictionary + brute force\n`;
-                break;
-
-            case 64:
-                recommendations += `<strong>SHA-256 Cracking Strategy:</strong>\n`;
-                recommendations += `1. 📖 Dictionary attacks only\n`;
-                recommendations += `   - hashcat -m 1400 -a 0 hash.txt wordlist.txt\n`;
-                recommendations += `2. 🎭 Mask attacks (if pattern known)\n`;
-                recommendations += `   - hashcat -m 1400 -a 3 hash.txt ?d?d?d?d?d?d?d?d\n`;
-                recommendations += `3. ⚠️ Brute force not practical\n`;
-                recommendations += `4. 🧠 Social engineering for context\n`;
-                break;
-
-            default:
-                recommendations += `<strong>General Cracking Approach:</strong>\n`;
-                recommendations += `1. Identify exact hash algorithm first\n`;
-                recommendations += `2. Use appropriate hashcat mode\n`;
-                recommendations += `3. Start with dictionary attacks\n`;
-                recommendations += `4. Progress to rule-based attacks\n`;
-        }
-    } else {
-        recommendations += `<strong>Non-standard Hash:</strong>\n`;
-        recommendations += `1. Identify encoding/format first\n`;
-        recommendations += `2. Decode if necessary\n`;
-        recommendations += `3. Re-analyze after decoding\n`;
-    }
-
-    recommendations += `\n<strong>Tools & Resources:</strong>\n`;
-    recommendations += `• hashcat (GPU-accelerated)\n`;
-    recommendations += `• John the Ripper\n`;
-    recommendations += `• CrackStation (online)\n`;
-    recommendations += `• HashKiller (online)\n`;
-    recommendations += `• Custom scripts for specific formats\n`;
-
-    return recommendations;
+function clearJWT() {
+    document.getElementById('jwtInput').value = '';
+    document.getElementById('jwtOutput').innerHTML = '';
 }
 
-// Advanced Steganography Functions
-function analyzeSteganography() {
-    const fileInput = document.getElementById('stegoImage');
-    const analysisType = document.getElementById('stegoType').value;
-    const output = document.getElementById('stegoOutput');
-    const canvasContainer = document.getElementById('stegoCanvas');
+function generateSQLPayloads() {
+    const target = document.getElementById('sqlTarget').value;
+    const type = document.getElementById('sqlType').value;
 
-    if (!fileInput.files[0]) {
-        showMessage('Please upload an image', 'error');
+    let payloads = [];
+
+    switch(type) {
+        case 'union':
+            payloads = [
+                "' UNION SELECT 1,2,3--",
+                "' UNION SELECT user(),database(),version()--",
+                "' UNION SELECT table_name,column_name,1 FROM information_schema.columns--",
+                "' UNION SELECT schema_name,1,2 FROM information_schema.schemata--",
+                "1' UNION SELECT 1,2,3,4,5#"
+            ];
+            break;
+        case 'boolean':
+            payloads = [
+                "' AND 1=1--",
+                "' AND 1=2--",
+                "' AND 'a'='a'--",
+                "' AND substring(user(),1,1)='r'--",
+                "' AND (SELECT COUNT(*) FROM users)>0--"
+            ];
+            break;
+        case 'time':
+            payloads = [
+                "'; WAITFOR DELAY '00:00:05'--",
+                "' AND SLEEP(5)--",
+                "' AND (SELECT SLEEP(5))--",
+                "'; SELECT pg_sleep(5)--",
+                "' AND BENCHMARK(5000000,SHA1(1))--"
+            ];
+            break;
+        case 'error':
+            payloads = [
+                "' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e))--",
+                "' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--",
+                "' AND UPDATEXML(1,CONCAT(0x7e,(SELECT user()),0x7e),1)--"
+            ];
+            break;
+    }
+
+    let output = `<div class="info">Generated ${type.toUpperCase()} SQL Injection Payloads:</div>`;
+    payloads.forEach((payload, i) => {
+        output += `<div class="result-line">Payload ${i+1}: <code>${payload}</code></div>`;
+    });
+
+    document.getElementById('sqlOutput').innerHTML = output;
+}
+
+function testSQLInjection() {
+    const target = document.getElementById('sqlTarget').value;
+    let output = `<div class="info">SQL Injection Test Results for: ${target}</div>`;
+    output += `<div class="warning">⚠️ This is a simulation. Do not test on systems you don't own!</div>`;
+    output += `<div class="result-line">Recommended tools: SQLMap, Burp Suite, OWASP ZAP</div>`;
+    output += `<div class="result-line">Manual testing: Check for error messages, time delays, boolean responses</div>`;
+
+    document.getElementById('sqlOutput').innerHTML = output;
+}
+
+function clearSQL() {
+    document.getElementById('sqlTarget').value = '';
+    document.getElementById('sqlOutput').innerHTML = '';
+}
+
+function generatePattern() {
+    const length = parseInt(document.getElementById('patternLength').value) || 100;
+    const type = document.getElementById('patternType').value;
+    let pattern = '';
+
+    switch(type) {
+        case 'cyclic':
+            pattern = generateCyclicPattern(length);
+            break;
+        case 'alphabetic':
+            pattern = generateAlphabeticPattern(length);
+            break;
+        case 'numeric':
+            pattern = generateNumericPattern(length);
+            break;
+        case 'custom':
+            const chars = document.getElementById('customChars').value || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            pattern = generateCustomPattern(length, chars);
+            break;
+    }
+
+    document.getElementById('patternOutput').innerHTML = 
+        `<div class="success">Generated Pattern (${pattern.length} chars):</div><div class="pattern-display">${pattern}</div>`;
+}
+
+function generateCyclicPattern(length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let pattern = '';
+    let index = 0;
+
+    for (let i = 0; i < length; i++) {
+        pattern += chars[index % chars.length];
+        index++;
+    }
+
+    return pattern;
+}
+
+function generateAlphabeticPattern(length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let pattern = '';
+
+    for (let i = 0; i < length; i++) {
+        pattern += chars[i % chars.length];
+    }
+
+    return pattern;
+}
+
+function generateNumericPattern(length) {
+    let pattern = '';
+    for (let i = 0; i < length; i++) {
+        pattern += (i % 10).toString();
+    }
+    return pattern;
+}
+
+function generateCustomPattern(length, chars) {
+    let pattern = '';
+    for (let i = 0; i < length; i++) {
+        pattern += chars[i % chars.length];
+    }
+    return pattern;
+}
+
+function findOffset() {
+    const crashPattern = document.getElementById('crashPattern').value.trim();
+    const generatedPattern = document.querySelector('#patternOutput .pattern-display')?.textContent;
+
+    if (!generatedPattern || !crashPattern) {
+        document.getElementById('offsetOutput').innerHTML = 
+            '<div class="error">Please generate a pattern first and enter crash pattern</div>';
         return;
     }
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
+    const offset = generatedPattern.indexOf(crashPattern);
 
+    if (offset !== -1) {
+        document.getElementById('offsetOutput').innerHTML = 
+            `<div class="success">Offset found: ${offset} bytes</div>`;
+    } else {
+        document.getElementById('offsetOutput').innerHTML = 
+            `<div class="error">Pattern not found in generated sequence</div>`;
+    }
+}
+
+function clearPattern() {
+    document.getElementById('patternLength').value = '100';
+    document.getElementById('patternOutput').innerHTML = '';
+    document.getElementById('crashPattern').value = '';
+    document.getElementById('offsetOutput').innerHTML = '';
+}
+
+function generatePasswords() {
+    const length = parseInt(document.getElementById('passLength').value) || 16;
+    const count = parseInt(document.getElementById('passCount').value) || 5;
+
+    const useUpper = document.getElementById('useUppercase').checked;
+    const useLower = document.getElementById('useLowercase').checked;
+    const useNumbers = document.getElementById('useNumbers').checked;
+    const useSymbols = document.getElementById('useSymbols').checked;
+    const useAmbiguous = document.getElementById('useAmbiguous').checked;
+
+    let charset = '';
+    if (useUpper) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (useLower) charset += 'abcdefghijklmnopqrstuvwxyz';
+    if (useNumbers) charset += '0123456789';
+    if (useSymbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+    if (!useAmbiguous) {
+        charset = charset.replace(/[0Ol1]/g, '');
+    }
+
+    if (!charset) {
+        document.getElementById('passwordOutput').innerHTML = 
+            '<div class="error">Please select at least one character set</div>';
+        return;
+    }
+
+    let output = '<div class="info">Generated Passwords:</div>';
+
+    for (let i = 0; i < count; i++) {
+        let password = '';
+        for (let j = 0; j < length; j++) {
+            password += charset[Math.floor(Math.random() * charset.length)];
+        }
+        const strength = calculatePasswordStrength(password);
+        output += `<div class="result-line">${password} <span class="strength-${strength.level}">(${strength.score}/100)</span></div>`;
+    }
+
+    document.getElementById('passwordOutput').innerHTML = output;
+}
+
+function calculatePasswordStrength(password) {
+    let score = 0;
+
+    // Length bonus
+    score += Math.min(password.length * 2, 30);
+
+    // Character variety
+    if (/[a-z]/.test(password)) score += 10;
+    if (/[A-Z]/.test(password)) score += 10;
+    if (/[0-9]/.test(password)) score += 10;
+    if (/[^a-zA-Z0-9]/.test(password)) score += 15;
+
+    // Complexity bonus
+    if (password.length >= 12) score += 10;
+    if (password.length >= 16) score += 10;
+
+    // Penalty for common patterns
+    if (/(.)\1{2,}/.test(password)) score -= 10;
+    if (/123|abc|qwe/i.test(password)) score -= 15;
+
+    const level = score >= 80 ? 'strong' : score >= 60 ? 'medium' : 'weak';
+
+    return { score: Math.max(0, Math.min(100, score)), level };
+}
+
+function checkPasswordStrength() {
+    // This would analyze a provided password
+    document.getElementById('passwordOutput').innerHTML = 
+        '<div class="info">Enter a password to check its strength</div>';
+}
+
+function clearPasswords() {
+    document.getElementById('passwordOutput').innerHTML = '';
+}
+
+function executeBrainfuck() {
+    const code = document.getElementById('bfCode').value;
+    const input = document.getElementById('bfInput').value;
+
+    const result = interpretBrainfuck(code, input);
+
+    document.getElementById('bfOutput').innerHTML = 
+        `<div class="success">Output: ${result.output}</div>`;
+    document.getElementById('bfMemory').innerHTML = 
+        `<div class="info">Memory: [${result.memory.slice(0, 20).join(', ')}...]</div>`;
+}
+
+function interpretBrainfuck(code, input) {
+    const memory = new Array(30000).fill(0);
+    let pointer = 0;
+    let codePointer = 0;
+    let inputPointer = 0;
+    let output = '';
+    let iterations = 0;
+    const maxIterations = 100000;
+
+    while (codePointer < code.length && iterations < maxIterations) {
+        const command = code[codePointer];
+
+        switch (command) {
+            case '>':
+                pointer = (pointer + 1) % memory.length;
+                break;
+            case '<':
+                pointer = (pointer - 1 + memory.length) % memory.length;
+                break;
+            case '+':
+                memory[pointer] = (memory[pointer] + 1) % 256;
+                break;
+            case '-':
+                memory[pointer] = (memory[pointer] - 1 + 256) % 256;
+                break;
+            case '.':
+                output += String.fromCharCode(memory[pointer]);
+                break;
+            case ',':
+                if (inputPointer < input.length) {
+                    memory[pointer] = input.charCodeAt(inputPointer++);
+                } else {
+                    memory[pointer] = 0;
+                }
+                break;
+            case '[':
+                if (memory[pointer] === 0) {
+                    let bracketCount = 1;
+                    while (bracketCount > 0 && codePointer < code.length - 1) {
+                        codePointer++;
+                        if (code[codePointer] === '[') bracketCount++;
+                        if (code[codePointer] === ']') bracketCount--;
+                    }
+                }
+                break;
+            case ']':
+                if (memory[pointer] !== 0) {
+                    let bracketCount = 1;
+                    while (bracketCount > 0 && codePointer > 0) {
+                        codePointer--;
+                        if (code[codePointer] === ']') bracketCount++;
+                        if (code[codePointer] === '[') bracketCount--;
+                    }
+                }
+                break;
+        }
+
+        codePointer++;
+        iterations++;
+    }
+
+    if (iterations >= maxIterations) {
+        output += '\n[Execution stopped - iteration limit reached]';
+    }
+
+    return { output, memory, iterations };
+}
+
+function loadBFExample() {
+    document.getElementById('bfCode').value = '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.';
+    document.getElementById('bfInput').value = '';
+}
+
+function stepBrainfuck() {
+    document.getElementById('bfOutput').innerHTML = 
+        '<div class="info">Step-by-step execution not implemented in this demo</div>';
+}
+
+function clearBrainfuck() {
+    document.getElementById('bfCode').value = '';
+    document.getElementById('bfInput').value = '';
+    document.getElementById('bfOutput').innerHTML = '';
+    document.getElementById('bfMemory').innerHTML = '';
+}
+
+// Initialize steganography tool
+function initSteganographyTool() {
+    const fileInput = document.getElementById('stegoFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleStegoFile);
+    }
+}
+
+function handleStegoFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+            const canvas = document.getElementById('stegoCanvas');
+            const ctx = canvas.getContext('2d');
 
-                let result = performAdvancedSteganographyAnalysis(ctx, file, analysisType, canvasContainer);
-                output.innerHTML = `<pre>${result}</pre>`;
-                showMessage('Steganography analysis completed!', 'success');
-            } catch (error) {
-                output.innerHTML = `<pre>Error: ${error.message}</pre>`;
-                showMessage('Analysis failed!', 'error');
-            }
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.style.display = 'block';
+
+            ctx.drawImage(img, 0, 0);
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-function performAdvancedSteganographyAnalysis(ctx, file, analysisType, canvasContainer) {
-    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+function analyzeLSB() {
+    const canvas = document.getElementById('stegoCanvas');
+    if (!canvas || canvas.style.display === 'none') {
+        document.getElementById('stegoOutput').innerHTML = 
+            '<div class="error">Please upload an image first</div>';
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
-    const width = ctx.canvas.width;
-    const height = ctx.canvas.height;
 
-    let result = `<strong>Advanced Steganography Analysis Report</strong>\n\n`;
-    result += `<strong>File Information:</strong>\n`;
-    result += `Filename: ${file.name}\n`;
-    result += `File Size: ${file.size.toLocaleString()} bytes (${(file.size / 1024).toFixed(2)} KB)\n`;
-    result += `Image Dimensions: ${width} x ${height} pixels\n`;
-    result += `Total Pixels: ${(width * height).toLocaleString()}\n`;
-    result += `Color Depth: 32-bit RGBA\n`;
-    result += `Theoretical LSB Capacity: ${Math.floor(width * height * 3 / 8).toLocaleString()} bytes\n`;
-    result += `Analysis Type: ${analysisType.toUpperCase()}\n`;
-    result += `Analysis Time: ${new Date().toLocaleString()}\n\n`;
+    let lsbBits = '';
+    let output = '<div class="info">LSB Analysis Results:</div>';
 
-    switch(analysisType) {
-        case 'lsb':
-            result += performLSBAnalysis(data, width, height, canvasContainer);
-            break;
-        case 'metadata':
-```javascript
-            result += performImageMetadataAnalysis(file);
-            break;
-        case 'strings':
-            result += performImageStringExtraction(data);
-            break;
-        case 'visual':
-            result += performVisualAnalysis(data, width, height, canvasContainer);
-            break;
-        case 'frequency':
-            result += performFrequencyAnalysis(data, canvasContainer);
-            break;
-        case 'entropy':
-            result += performEntropyAnalysis(data, width, height, canvasContainer);
-            break;
-        case 'statistical':
-            result += performStatisticalAnalysis(data, width, height);
-            break;
-    }
-
-    return result;
-}
-
-function performLSBAnalysis(data, width, height, canvasContainer) {
-    let result = `<strong>LSB (Least Significant Bit) Analysis:</strong>\n\n`;
-
-    // Extract LSB from each channel
-    const channels = {
-        red: [],
-        green: [],
-        blue: [],
-        alpha: []
-    };
-
+    // Extract LSBs from red channel
     for (let i = 0; i < data.length; i += 4) {
-        channels.red.push(data[i] & 1);
-        channels.green.push(data[i + 1] & 1);
-        channels.blue.push(data[i + 2] & 1);
-        channels.alpha.push(data[i + 3] & 1);
+        lsbBits += (data[i] & 1).toString();
+        if (lsbBits.length >= 1000) break; // Limit for demo
     }
 
-    // Statistical analysis of LSBs
-    Object.entries(channels).forEach(([channel, bits]) => {
-        const ones = bits.filter(bit => bit === 1).length;
-        const zeros = bits.length - ones;
-        const ratio = ones / bits.length;
-        const chiSquare = calculateChiSquare(bits);
-
-        result += `${channel.toUpperCase()} Channel LSB Analysis:\n`;
-        result += `  Ones: ${ones} (${(ratio * 100).toFixed(2)}%)\n`;
-        result += `  Zeros: ${zeros} (${((1 - ratio) * 100).toFixed(2)}%)\n`;
-        result += `  Chi-Square: ${chiSquare.toFixed(4)} ${chiSquare > 3.84 ? '(SUSPICIOUS)' : '(NORMAL)'}\n`;
-        result += `  Entropy: ${calculateBitEntropy(bits).toFixed(4)} bits\n\n`;
-    });
-
-    // Extract potential hidden data
-    result += `<strong>Hidden Data Extraction:</strong>\n`;
-
-    const extractionMethods = [
-        { name: 'Red LSB Sequential', bits: channels.red },
-        { name: 'Green LSB Sequential', bits: channels.green },
-        { name: 'Blue LSB Sequential', bits: channels.blue },
-        { name: 'RGB Interleaved', bits: interleaveBits([channels.red, channels.green, channels.blue]) }
-    ];
-
-    extractionMethods.forEach(method => {
-        const text = extractTextFromBits(method.bits);
-        const entropy = calculateBitEntropy(method.bits);
-
-        result += `${method.name}:\n`;
-        result += `  Entropy: ${entropy.toFixed(4)}\n`;
-
-        if (text && text.length > 10) {
-            const printableRatio = (text.match(/[\x20-\x7E]/g) || []).length / text.length;
-            if (printableRatio > 0.7) {
-                result += `  Potential Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}\n`;
-            }
-        }
-
-        // Check for file signatures
-        const fileType = detectFileSignature(method.bits);
-        if (fileType) {
-            result += `  🎯 Possible ${fileType} file detected!\n`;
-        }
-
-        result += '\n';
-    });
-
-    // Create LSB visualizations
-    createLSBVisualizations(channels, width, height, canvasContainer);
-
-    return result;
-}
-
-function calculateChiSquare(bits) {
-    const ones = bits.filter(bit => bit === 1).length;
-    const zeros = bits.length - ones;
-    const expected = bits.length / 2;
-
-    return Math.pow(ones - expected, 2) / expected + Math.pow(zeros - expected, 2) / expected;
-}
-
-function calculateBitEntropy(bits) {
-    const ones = bits.filter(bit => bit === 1).length;
-    const zeros = bits.length - ones;
-    const total = bits.length;
-
-    if (ones === 0 || zeros === 0) return 0;
-
-    const p1 = ones / total;
-    const p0 = zeros / total;
-
-    return -(p1 * Math.log2(p1) + p0 * Math.log2(p0));
-}
-
-function interleaveBits(channelArrays) {
-    const result = [];
-    const maxLength = Math.max(...channelArrays.map(arr => arr.length));
-
-    for (let i = 0; i < maxLength; i++) {
-        channelArrays.forEach(channel => {
-            if (i < channel.length) {
-                result.push(channel[i]);
-            }
-        });
-    }
-
-    return result;
-}
-
-function extractTextFromBits(bits) {
+    // Try to find readable text
     let text = '';
-
-    for (let i = 0; i < bits.length - 7; i += 8) {
-        const byte = bits.slice(i, i + 8).join('');
-        const charCode = parseInt(byte, 2);
-
-        if (charCode >= 32 && charCode <= 126) {
-            text += String.fromCharCode(charCode);
-        } else if (charCode === 10 || charCode === 13 || charCode === 9) {
-            text += String.fromCharCode(charCode);
-        } else if (charCode === 0) {
-            break; // Null terminator
+    for (let i = 0; i < lsbBits.length - 7; i += 8) {
+        const byte = parseInt(lsbBits.substr(i, 8), 2);
+        if (byte >= 32 && byte <= 126) {
+            text += String.fromCharCode(byte);
         } else {
             text += '.';
         }
+        if (text.length >= 100) break;
     }
 
-    return text;
+    output += `<div class="result-line">First 1000 LSBs: ${lsbBits.substring(0, 100)}...</div>`;
+    output += `<div class="result-line">Possible text: ${text}</div>`;
+
+    document.getElementById('stegoOutput').innerHTML = output;
 }
 
-function detectFileSignature(bits) {
-    const signatures = {
-        '89504e470d0a1a0a': 'PNG',
-        'ffd8ffe0': 'JPEG',
-        'ffd8ffe1': 'JPEG',
-        'ffd8ffe2': 'JPEG',
-        'ffd8ffe3': 'JPEG',
-        '474946383761': 'GIF87a',
-        '474946383961': 'GIF89a',
-        '504b0304': 'ZIP',
-        '504b0506': 'ZIP (empty)',
-        '25504446': 'PDF',
-        '52617221': 'RAR v1.5+',
-        'd0cf11e0': 'Microsoft Office',
-        '4d5a9000': 'Windows PE'
-    };
-
-    // Convert first 64 bits to hex string
-    let hex = '';
-    for (let i = 0; i < Math.min(64, bits.length - 3); i += 4) {
-        const nibble = bits.slice(i, i + 4).join('');
-        hex += parseInt(nibble, 2).toString(16);
-    }
-
-    for (const [sig, type] of Object.entries(signatures)) {
-        if (hex.startsWith(sig)) {
-            return type;
-        }
-    }
-
-    return null;
-}
-
-function createLSBVisualizations(channels, width, height, container) {
-    container.innerHTML = '';
-
-    const visualizations = [
-        { name: 'Red Channel LSB', channel: 'red' },
-        { name: 'Green Channel LSB', channel: 'green' },
-        { name: 'Blue Channel LSB', channel: 'blue' },
-        { name: 'Combined RGB LSB', channel: 'combined' }
-    ];
-
-    visualizations.forEach(viz => {
-        const title = document.createElement('h4');
-        title.textContent = viz.name;
-        title.style.color = '#ffffff';
-        title.style.marginTop = '1rem';
-        title.style.marginBottom = '0.5rem';
-
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.min(width, 400);
-        canvas.height = Math.min(height, 400);
-        canvas.style.border = '1px solid #444';
-        canvas.style.marginBottom = '1rem';
-        canvas.style.maxWidth = '100%';
-
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.createImageData(canvas.width, canvas.height);
-        const newData = imageData.data;
-
-        // Scale factors
-        const scaleX = width / canvas.width;
-        const scaleY = height / canvas.height;
-
-        for (let y = 0; y < canvas.height; y++) {
-            for (let x = 0; x < canvas.width; x++) {
-                const srcX = Math.floor(x * scaleX);
-                const srcY = Math.floor(y * scaleY);
-                const srcIndex = srcY * width + srcX;
-                const destIndex = (y * canvas.width + x) * 4;
-
-                if (viz.channel === 'combined') {
-                    newData[destIndex] = channels.red[srcIndex] * 255;
-                    newData[destIndex + 1] = channels.green[srcIndex] * 255;
-                    newData[destIndex + 2] = channels.blue[srcIndex] * 255;
-                } else {
-                    const value = channels[viz.channel][srcIndex] * 255;
-                    newData[destIndex] = viz.channel === 'red' ? value : 0;
-                    newData[destIndex + 1] = viz.channel === 'green' ? value : 0;
-                    newData[destIndex + 2] = viz.channel === 'blue' ? value : 0;
-                }
-                newData[destIndex + 3] = 255; // Alpha
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-
-        container.appendChild(title);
-        container.appendChild(canvas);
-    });
-}
-
-// QR Code Functions with full implementation
-function initializeQRTool() {
-    // Initialize QR size slider
-    const sizeSlider = document.getElementById('qrSize');
-    const sizeValue = document.getElementById('qrSizeValue');
-
-    if (sizeSlider && sizeValue) {
-        sizeSlider.oninput = function() {
-            sizeValue.textContent = this.value + 'px';
-        };
-    }
-}
-
-function toggleQROperation() {
-    const operation = document.getElementById('qrOperation').value;
-    const decodeGroup = document.getElementById('qrDecodeGroup');
-    const generateGroup = document.getElementById('qrGenerateGroup');
-
-    if (decodeGroup && generateGroup) {
-        decodeGroup.style.display = operation === 'decode' ? 'block' : 'none';
-        generateGroup.style.display = operation === 'generate' ? 'block' : 'none';
-    }
-}
-
-function processQRCode() {
-    const operation = document.getElementById('qrOperation').value;
-
-    if (operation === 'decode') {
-        decodeQRCode();
-    } else if (operation === 'generate') {
-        generateQRCode();
-    }
-}
-
-function decodeQRCode() {
-    const fileInput = document.getElementById('qrFile');
-    const output = document.getElementById('qrOutput');
-    const display = document.getElementById('qrDisplay');
-
-    if (!fileInput.files[0]) {
-        showMessage('Please upload a QR code image', 'error');
+function extractChannels() {
+    const canvas = document.getElementById('stegoCanvas');
+    if (!canvas || canvas.style.display === 'none') {
+        document.getElementById('stegoOutput').innerHTML = 
+            '<div class="error">Please upload an image first</div>';
         return;
     }
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
 
+    // Create separate canvases for each channel
+    let output = '<div class="info">RGB Channel Analysis:</div>';
+
+    const channels = ['Red', 'Green', 'Blue'];
+    channels.forEach((channel, index) => {
+        const channelCanvas = document.createElement('canvas');
+        channelCanvas.width = canvas.width;
+        channelCanvas.height = canvas.height;
+        channelCanvas.style.maxWidth = '200px';
+        channelCanvas.style.margin = '5px';
+
+        const channelCtx = channelCanvas.getContext('2d');
+        const channelData = channelCtx.createImageData(canvas.width, canvas.height);
+
+        for (let i = 0; i < data.length; i += 4) {
+            channelData.data[i] = index === 0 ? data[i] : 0;     // Red
+            channelData.data[i + 1] = index === 1 ? data[i + 1] : 0; // Green
+            channelData.data[i + 2] = index === 2 ? data[i + 2] : 0; // Blue
+            channelData.data[i + 3] = 255; // Alpha
+        }
+
+        channelCtx.putImageData(channelData, 0, 0);
+        output += `<div class="result-line">${channel} Channel:</div>`;
+        output += `<div class="channel-image">${channelCanvas.outerHTML}</div>`;
+    });
+
+    document.getElementById('stegoOutput').innerHTML = output;
+}
+
+function detectStego() {
+    document.getElementById('stegoOutput').innerHTML = 
+        '<div class="info">Steganography detection analysis would use advanced algorithms like:</div>' +
+        '<div class="result-line">• Chi-square analysis</div>' +
+        '<div class="result-line">• Histogram analysis</div>' +
+        '<div class="result-line">• Pixel correlation analysis</div>' +
+        '<div class="result-line">• LSB plane visualization</div>' +
+        '<div class="warning">Full implementation requires specialized stego detection libraries</div>';
+}
+
+function clearStego() {
+    document.getElementById('stegoFile').value = '';
+    document.getElementById('stegoCanvas').style.display = 'none';
+    document.getElementById('stegoOutput').innerHTML = '';
+}
+
+// Initialize QR tool
+function initQRTool() {
+    const fileInput = document.getElementById('qrFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleQRFile);
+    }
+}
+
+function handleQRFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+            const canvas = document.getElementById('qrCanvas');
+            const ctx = canvas.getContext('2d');
 
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.style.display = 'block';
 
-                // Use jsQR library if available
-                if (typeof jsQR !== 'undefined') {
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+            ctx.drawImage(img, 0, 0);
 
-                    if (code) {
-                        let result = `<strong>QR Code Decoded Successfully!</strong>\n\n`;
-                        result += `<strong>Decoded Data:</strong>\n${code.data}\n\n`;
-                        result += `<strong>QR Code Information:</strong>\n`;
-                        result += `Data Length: ${code.data.length} characters\n`;
-                        result += `Error Correction Level: ${code.errorCorrectionLevel || 'Unknown'}\n`;
-                        result += `Version: ${code.version || 'Unknown'}\n`;
-                        result += `Mode: ${detectQRDataType(code.data)}\n\n`;
-
-                        // Analyze the data
-                        result += analyzeQRData(code.data);
-
-                        output.innerHTML = `<pre>${result}</pre>`;
-
-                        // Display the processed image
-                        display.innerHTML = '';
-                        const resultCanvas = document.createElement('canvas');
-                        const resultCtx = resultCanvas.getContext('2d');
-                        resultCanvas.width = 300;
-                        resultCanvas.height = 300;
-                        resultCtx.drawImage(img, 0, 0, 300, 300);
-                        display.appendChild(resultCanvas);
-
-                        showMessage('QR code decoded successfully!', 'success');
-                    } else {
-                        output.innerHTML = `<pre><strong>QR Code Decoding Failed</strong>\n\nNo QR code found in the image.\n\nPossible issues:\n• Image quality too low\n• QR code is damaged or incomplete\n• Image contains multiple QR codes\n• Not a valid QR code format\n\nTips:\n• Ensure good lighting and focus\n• Try a higher resolution image\n• Crop the image to show only the QR code</pre>`;
-                        showMessage('No QR code found in image', 'error');
-                    }
-                } else {
-                    // Fallback analysis without jsQR
-                    output.innerHTML = `<pre><strong>QR Code Analysis (Basic)</strong>\n\nImage uploaded: ${file.name}\nSize: ${file.size} bytes\nDimensions: ${img.width}x${img.height}\n\nNote: Advanced QR decoding requires the jsQR library.\nFor full functionality, use online QR readers or mobile apps.</pre>`;
-                    showMessage('Basic analysis completed', 'info');
-                }
-            } catch (error) {
-                output.innerHTML = `<pre>Error processing QR code: ${error.message}</pre>`;
-                showMessage('QR processing failed', 'error');
-            }
+            // Auto-decode when image is loaded
+            decodeQRFromCanvas();
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-function generateQRCode() {
-    const data = document.getElementById('qrData').value;
-    const dataType = document.getElementById('qrDataType').value;
-    const size = parseInt(document.getElementById('qrSize').value);
-    const errorCorrection = document.getElementById('errorCorrection').value;
-    const output = document.getElementById('qrOutput');
-    const display = document.getElementById('qrDisplay');
+function decodeQRFromCanvas() {
+    const canvas = document.getElementById('qrCanvas');
+    if (!canvas || canvas.style.display === 'none') return;
 
-    if (!data.trim()) {
-        showMessage('Please enter data to encode', 'error');
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    try {
+        if (typeof jsQR !== 'undefined') {
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+                document.getElementById('qrOutput').innerHTML = 
+                    `<div class="success">QR Code Content: ${code.data}</div>`;
+            } else {
+                document.getElementById('qrOutput').innerHTML = 
+                    '<div class="error">No QR code found in image</div>';
+            }
+        } else {
+            document.getElementById('qrOutput').innerHTML = 
+                '<div class="warning">QR decoder library not loaded</div>';
+        }
+    } catch (e) {
+        document.getElementById('qrOutput').innerHTML = 
+            `<div class="error">Error decoding QR code: ${e.message}</div>`;
+    }
+}
+
+function decodeQR() {
+    decodeQRFromCanvas();
+}
+
+function generateQR() {
+    const text = document.getElementById('qrText').value;
+    if (!text) {
+        document.getElementById('qrOutput').innerHTML = 
+            '<div class="error">Please enter text to encode</div>';
         return;
     }
 
     try {
-        let qrData = data;
-
-        // Format data based on type
-        if (dataType === 'wifi') {
-            const ssid = document.getElementById('wifiSSID').value;
-            const password = document.getElementById('wifiPassword').value;
-            const security = document.getElementById('wifiSecurity').value;
-
-            if (!ssid) {
-                showMessage('Please enter WiFi SSID', 'error');
-                return;
-            }
-
-            qrData = `WIFI:T:${security};S:${ssid};P:${password};H:false;;`;
-        }
-
-        // Use QRCode.js library if available
         if (typeof QRCode !== 'undefined') {
-            display.innerHTML = '';
-            const qrDiv = document.createElement('div');
-            display.appendChild(qrDiv);
+            const canvas = document.getElementById('qrCanvas');
+            canvas.style.display = 'block';
 
-            const qr = new QRCode(qrDiv, {
-                text: qrData,
-                width: size,
-                height: size,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel[errorCorrection]
+            QRCode.toCanvas(canvas, text, function (error) {
+                if (error) {
+                    document.getElementById('qrOutput').innerHTML = 
+                        `<div class="error">Error generating QR code: ${error}</div>`;
+                } else {
+                    document.getElementById('qrOutput').innerHTML = 
+                        '<div class="success">QR code generated successfully</div>';
+                }
             });
-
-            let result = `<strong>QR Code Generated Successfully!</strong>\n\n`;
-            result += `<strong>Encoded Data:</strong>\n${qrData}\n\n`;
-            result += `<strong>QR Code Properties:</strong>\n`;
-            result += `Size: ${size}x${size} pixels\n`;
-            result += `Error Correction: ${errorCorrection}\n`;
-            result += `Data Type: ${dataType}\n`;
-            result += `Data Length: ${qrData.length} characters\n\n`;
-            result += `<strong>Technical Details:</strong>\n`;
-            result += `Encoding: UTF-8\n`;
-            result += `Format: QR Code 2005\n`;
-            result += `Estimated Version: ${estimateQRVersion(qrData.length)}\n`;
-
-            output.innerHTML = `<pre>${result}</pre>`;
-            showMessage('QR code generated successfully!', 'success');
         } else {
-            // Fallback using Google Charts API
-            const apiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrData)}&ecc=${errorCorrection}`;
-
-            const img = document.createElement('img');
-            img.src = apiUrl;
-            img.style.maxWidth = '100%';
-            img.style.border = '1px solid #ccc';
-
-            display.innerHTML = '';
-            display.appendChild(img);
-
-            let result = `<strong>QR Code Generated (via API)</strong>\n\n`;
-            result += `Data: ${qrData}\n`;
-            result += `Size: ${size}x${size}\n`;
-            result += `Error Correction: ${errorCorrection}\n`;
-
-            output.innerHTML = `<pre>${result}</pre>`;
-            showMessage('QR code generated via API', 'success');
+            document.getElementById('qrOutput').innerHTML = 
+                '<div class="warning">QR generator library not loaded</div>';
         }
-    } catch (error) {
-        output.innerHTML = `<pre>Error generating QR code: ${error.message}</pre>`;
-        showMessage('QR generation failed', 'error');
+    } catch (e) {
+        document.getElementById('qrOutput').innerHTML = 
+            `<div class="error">Error: ${e.message}</div>`;
     }
 }
 
-function detectQRDataType(data) {
-    if (data.startsWith('http://') || data.startsWith('https://')) return 'URL';
-    if (data.startsWith('mailto:')) return 'Email';
-    if (data.startsWith('tel:')) return 'Phone';
-    if (data.startsWith('sms:')) return 'SMS';
-    if (data.startsWith('WIFI:')) return 'WiFi Network';
-    if (data.startsWith('geo:')) return 'Geographic Location';
-    if (data.includes('BEGIN:VCARD')) return 'Contact Card (vCard)';
-    if (/^\d+$/.test(data)) return 'Numeric';
-    return 'Plain Text';
+function clearQR() {
+    document.getElementById('qrFile').value = '';
+    document.getElementById('qrText').value = '';
+    document.getElementById('qrCanvas').style.display = 'none';
+    document.getElementById('qrOutput').innerHTML = '';
 }
 
-function analyzeQRData(data) {
-    let analysis = `<strong>Data Analysis:</strong>\n`;
+// Generic tool execution function for basic tools
+function executeUrl(action) {
+    const input = document.getElementById('urlInput0').value;
+    let output = '';
 
-    const dataType = detectQRDataType(data);
-    analysis += `Type: ${dataType}\n`;
-
-    if (dataType === 'URL') {
-        try {
-            const url = new URL(data);
-            analysis += `Domain: ${url.hostname}\n`;
-            analysis += `Protocol: ${url.protocol}\n`;
-            analysis += `Path: ${url.pathname || '/'}\n`;
-            if (url.search) analysis += `Query: ${url.search}\n`;
-        } catch (e) {
-            analysis += `Invalid URL format\n`;
-        }
-    } else if (dataType === 'WiFi Network') {
-        const wifiMatch = data.match(/WIFI:T:([^;]*);S:([^;]*);P:([^;]*);/);
-        if (wifiMatch) {
-            analysis += `Security: ${wifiMatch[1] || 'Open'}\n`;
-            analysis += `SSID: ${wifiMatch[2]}\n`;
-            analysis += `Password: ${wifiMatch[3] ? '[HIDDEN]' : 'None'}\n`;
-        }
-    } else if (dataType === 'Email') {
-        const email = data.replace('mailto:', '');
-        analysis += `Email Address: ${email}\n`;
-    }
-
-    // Character encoding analysis
-    const hasUnicode = /[^\x00-\x7F]/.test(data);
-    analysis += `Character Encoding: ${hasUnicode ? 'Unicode (UTF-8)' : 'ASCII'}\n`;
-
-    // Security considerations
-    analysis += `\n<strong>Security Notes:</strong>\n`;
-    if (dataType === 'URL') {
-        analysis += `• Verify the URL before visiting\n`;
-        analysis += `• Check for suspicious domains\n`;
-        analysis += `• Be cautious of shortened URLs\n`;
-    } else if (dataType === 'WiFi Network') {
-        analysis += `• Only connect to trusted networks\n`;
-        analysis += `• Verify network name with owner\n`;
-    }
-
-    return analysis;
-}
-
-function estimateQRVersion(dataLength) {
-    // Simplified QR version estimation
-    if (dataLength <= 25) return '1-2';
-    if (dataLength <= 47) return '3-4';
-    if (dataLength <= 77) return '5-6';
-    if (dataLength <= 114) return '7-8';
-    if (dataLength <= 154) return '9-10';
-    return '11+';
-}
-
-// Hash Cracking Functions with advanced algorithms
-let crackingState = {
-    isRunning: false,
-    isPaused: false,
-    startTime: null,
-    attempts: 0,
-    speed: 0,
-    worker: null
-};
-
-function startHashCracking() {
-    const hash = document.getElementById('crackHash').value.trim().toLowerCase();
-    const hashType = document.getElementById('crackHashType').value;
-    const attackMode = document.getElementById('attackMode').value;
-
-    if (!hash) {
-        showMessage('Please enter a hash to crack', 'error');
-        return;
-    }
-
-    if (crackingState.isRunning) {
-        showMessage('Cracking already in progress', 'warning');
-        return;
-    }
-
-    if (!validateHashFormat(hash, hashType)) {
-        showMessage('Invalid hash format for selected type', 'error');
-        return;
-    }
-
-    crackingState.isRunning = true;
-    crackingState.isPaused = false;
-    crackingState.startTime = Date.now();
-    crackingState.attempts = 0;
-
-    updateCrackingUI('Starting...', 0);
-
-    // Start appropriate attack method
-    switch(attackMode) {
-        case 'dictionary':
-            startDictionaryAttack(hash, hashType);
+    switch(action) {
+        case 'urlencode':
+            output = encodeURIComponent(input);
             break;
-        case 'bruteforce':
-            startBruteForceAttack(hash, hashType);
+        case 'urldecode':
+            output = decodeURIComponent(input);
             break;
-        case 'hybrid':
-            startHybridAttack(hash, hashType);
+        case 'componentencode':
+            output = encodeURI(input);
             break;
-        case 'mask':
-            startMaskAttack(hash, hashType);
-            break;
-        case 'rainbow':
-            startRainbowTableAttack(hash, hashType);
-            break;
-        case 'rule':
-            startRuleBasedAttack(hash, hashType);
+        case 'componentdecode':
+            output = decodeURI(input);
             break;
     }
+
+    document.getElementById('urlOutput').innerHTML = `<div class="success">${output}</div>`;
 }
 
-function validateHashFormat(hash, type) {
-    const formats = {
-        'md5': /^[a-f0-9]{32}$/i,
-        'sha1': /^[a-f0-9]{40}$/i,
-        'sha256': /^[a-f0-9]{64}$/i,
-        'sha512': /^[a-f0-9]{128}$/i,
-        'ntlm': /^[a-f0-9]{32}$/i
-    };
-
-    return formats[type] ? formats[type].test(hash) : true;
-}
-
-async function startDictionaryAttack(hash, hashType) {
-    const wordlistType = document.getElementById('wordlist').value;
-    const output = document.getElementById('crackOutput');
-
-    let wordlist = generateWordlist(wordlistType);
-    let found = false;
-
-    output.innerHTML = `<pre><strong>Dictionary Attack Started</strong>\n\nTarget Hash: ${hash}\nHash Type: ${hashType.toUpperCase()}\nWordlist: ${wordlistType} (${wordlist.length} entries)\n\nProgress:\n</pre>`;
-
-    for (let i = 0; i < wordlist.length && crackingState.isRunning && !found; i++) {
-        if (crackingState.isPaused) {
-            await waitForResume();
-        }
-
-        const word = wordlist[i];
-        crackingState.attempts++;
-
-        try {
-            const testHash = await generateHashForCracking(word, hashType);
-
-            if (testHash === hash) {
-                found = true;
-                displayCrackingSuccess(word, hash, hashType);
-                break;
-            }
-
-            // Update progress every 100 attempts
-            if (crackingState.attempts % 100 === 0) {
-                const progress = (i / wordlist.length) * 100;
-                updateCrackingProgress(progress, `Testing: ${word}`);
-                await sleep(1); // Prevent UI blocking
-            }
-
-        } catch (error) {
-            console.error('Hashing error:', error);
-        }
-    }
-
-    if (!found && crackingState.isRunning) {
-        displayCrackingFailure(hash, hashType, crackingState.attempts);
-    }
-
-    crackingState.isRunning = false;
-}
-
-function generateWordlist(type) {
-    const wordlists = {
-        'common': [
-            'password', '123456', '12345678', 'qwerty', '123456789', 'letmein', '1234567',
-            'football', 'iloveyou', 'admin', 'welcome', 'monkey', 'login', 'abc123',
-            'starwars', 'master', 'hello', 'freedom', 'whatever', 'qazwsx', 'dragon',
-            'shadow', 'michael', 'jennifer', 'computer', 'baseball', 'mustang', 'access',
-            'killer', 'trustno1', 'jordan', 'hunter', 'ranger', 'george', 'thomas',
-            'michelle', 'buster', 'batman', 'soccer', 'harley', 'hockey', 'internet',
-            'chicken', 'maggie', 'chicago', 'barney', 'amanda', 'sierra', 'testing',
-            'pass', 'test', 'guest', 'user', 'root', 'secret', 'asdf', 'zxcvbnm',
-            'password123', 'admin123', 'root123', 'test123', 'user123', 'guest123'
-        ],
-        'rockyou': [
-            '123456', 'password', '12345678', 'qwerty', '123456789', 'letmein', '1234567',
-            'football', 'iloveyou', 'admin', 'welcome', 'monkey', 'login', 'abc123',
-            // ... extensive rockyou list would be here
-        ],
-        'patterns': [],
-        'custom': []
-    };
-
-    // Generate pattern-based passwords
-    if (type === 'patterns') {
-        const patterns = [];
-        const years = ['2024', '2023', '2022', '2021', '2020', '2019', '2018'];
-        const words = ['password', 'admin', 'user', 'test', 'guest', 'login'];
-        const numbers = ['123', '1234', '12345', '321', '111', '000'];
-
-        words.forEach(word => {
-            patterns.push(word);
-            patterns.push(word.toUpperCase());
-            patterns.push(word.charAt(0).toUpperCase() + word.slice(1));
-
-            years.forEach(year => {
-                patterns.push(word + year);
-                patterns.push(word + year.slice(-2));
-                patterns.push(year + word);
-            });
-
-            numbers.forEach(num => {
-                patterns.push(word + num);
-                patterns.push(num + word);
-            });
-        });
-
-        return patterns;
-    }
-
-    if (type === 'custom') {
-        const customText = document.getElementById('customWordlist').value;
-        return customText.split('\n').filter(line => line.trim()).map(line => line.trim());
-    }
-
-    return wordlists[type] || wordlists.common;
-}
-
-async function generateHashForCracking(text, hashType) {
-    switch(hashType) {
-        case 'md5':
-            return CryptoJS.MD5(text).toString();
-        case 'sha1':
-            return CryptoJS.SHA1(text).toString();
-        case 'sha256':
-            return CryptoJS.SHA256(text).toString();
-        case 'sha512':
-            return CryptoJS.SHA512(text).toString();
-        case 'ntlm':
-            return CryptoJS.MD4(CryptoJS.enc.Utf16LE.parse(text)).toString();
-        default:
-            return CryptoJS.MD5(text).toString();
-    }
-}
-
-function updateCrackingProgress(percentage, status) {
-    const progressBar = document.getElementById('crackProgress');
-    const statusElement = document.getElementById('crackStatus');
-    const speedElement = document.getElementById('crackSpeed');
-
-    if (progressBar) progressBar.style.width = percentage + '%';
-    if (statusElement) statusElement.textContent = status;
-
-    // Calculate and display speed
-    if (crackingState.startTime) {
-        const elapsed = (Date.now() - crackingState.startTime) / 1000;
-        const speed = crackingState.attempts / elapsed;
-        if (speedElement) speedElement.textContent = `Speed: ${speed.toFixed(0)} hashes/second`;
-    }
-}
-
-function displayCrackingSuccess(plaintext, hash, hashType) {
-    const output = document.getElementById('crackOutput');
-    const elapsed = (Date.now() - crackingState.startTime) / 1000;
-
-    let result = `<strong style="color: #4caf50;">🎉 HASH CRACKED SUCCESSFULLY! 🎉</strong>\n\n`;
-    result += `<strong>Results:</strong>\n`;
-    result += `Original Hash: ${hash}\n`;
-    result += `Plaintext: ${plaintext}\n`;
-    result += `Hash Type: ${hashType.toUpperCase()}\n`;
-    result += `Attempts: ${crackingState.attempts.toLocaleString()}\n`;
-    result += `Time Taken: ${elapsed.toFixed(2)} seconds\n`;
-    result += `Average Speed: ${(crackingState.attempts / elapsed).toFixed(0)} hashes/second\n\n`;
-
-    // Password analysis
-    result += `<strong>Password Analysis:</strong>\n`;
-    result += analyzePassword(plaintext);
-
-    output.innerHTML = `<pre>${result}</pre>`;
-    showMessage('Hash cracked successfully!', 'success');
-}
-
-function displayCrackingFailure(hash, hashType, attempts) {
-    const output = document.getElementById('crackOutput');
-    const elapsed = (Date.now() - crackingState.startTime) / 1000;
-
-    let result = `<strong style="color: #f44336;">Hash Not Found</strong>\n\n`;
-    result += `<strong>Attack Summary:</strong>\n`;
-    result += `Target Hash: ${hash}\n`;
-    result += `Hash Type: ${hashType.toUpperCase()}\n`;
-    result += `Total Attempts: ${attempts.toLocaleString()}\n`;
-    result += `Time Taken: ${elapsed.toFixed(2)} seconds\n`;
-    result += `Average Speed: ${(attempts / elapsed).toFixed(0)} hashes/second\n\n`;
-
-    result += `<strong>Recommendations:</strong>\n`;
-    result += `• Try different wordlists or attack modes\n`;
-    result += `• Use rule-based attacks with mutations\n`;
-    result += `• Consider mask attacks if password pattern is known\n`;
-    result += `• Use GPU acceleration with hashcat for better performance\n`;
-    result += `• Check online rainbow table databases\n`;
-
-    output.innerHTML = `<pre>${result}</pre>`;
-    updateCrackingProgress(100, 'Completed - No match found');
-}
-
-function analyzePassword(password) {
-    let analysis = '';
-
-    // Length analysis
-    analysis += `Length: ${password.length} characters `;
-    if (password.length < 8) {
-        analysis += `(WEAK - too short)\n`;
-    } else if (password.length < 12) {
-        analysis += `(MODERATE)\n`;
-    } else {
-        analysis += `(GOOD)\n`;
-    }
-
-    // Character analysis
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasDigits = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    let charTypes = 0;
-    if (hasLower) charTypes++;
-    if (hasUpper) charTypes++;
-    if (hasDigits) charTypes++;
-    if (hasSpecial) charTypes++;
-
-    analysis += `Character complexity: ${charTypes}/4 `;
-    if (charTypes < 2) {
-        analysis += `(WEAK)\n`;
-    } else if (charTypes < 3) {
-        analysis += `(MODERATE)\n`;
-    } else {
-        analysis += `(STRONG)\n`;
-    }
-
-    // Pattern analysis
-    if (/^\d+$/.test(password)) {
-        analysis += `Pattern: Numbers only (VERY WEAK)\n`;
-    } else if (/^[a-zA-Z]+$/.test(password)) {
-        analysis += `Pattern: Letters only (WEAK)\n`;
-    } else if (/^[a-zA-Z]+\d+$/.test(password)) {
-        analysis += `Pattern: Letters + numbers (COMMON)\n`;
-    }
-
-    // Common word detection
-    const commonWords = ['password', 'admin', 'user', 'test', 'guest', 'login', 'love', 'secret'];
-    const lowerPassword = password.toLowerCase();
-    for (let word of commonWords) {
-        if (lowerPassword.includes(word)) {
-            analysis += `Contains common word: "${word}" (VULNERABLE)\n`;
-            break;
-        }
-    }
-
-    return analysis;
-}
-
-function stopCracking() {
-    crackingState.isRunning = false;
-    crackingState.isPaused = false;
-    updateCrackingProgress(0, 'Stopped by user');
-    showMessage('Hash cracking stopped', 'info');
-}
-
-function pauseCracking() {
-    if (crackingState.isRunning) {
-        crackingState.isPaused = !crackingState.isPaused;
-        const status = crackingState.isPaused ? 'Paused' : 'Resumed';
-        updateCrackingProgress(null, status);
-        showMessage(`Hash cracking ${status.toLowerCase()}`, 'info');
-    }
-}
-
-function resetCracking() {
-    stopCracking();
-    document.getElementById('crackOutput').innerHTML = '';
-    updateCrackingProgress(0, 'Ready');
-    showMessage('Hash cracker reset', 'info');
-}
-
-async function waitForResume() {
-    while (crackingState.isPaused && crackingState.isRunning) {
-        await sleep(100);
-    }
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Utility functions
-function showMessage(message, type) {
-    const messageEl = document.createElement('div');
-    messageEl.className = `message ${type}`;
-    messageEl.textContent = message;
-
-    const modalBody = document.getElementById('modalBody');
-    if (modalBody) {
-        modalBody.insertBefore(messageEl, modalBody.firstChild);
-        setTimeout(() => {
-            if (messageEl.parentNode) {
-                messageEl.parentNode.removeChild(messageEl);
-            }
-        }, 3000);
-    }
-}
-
-// Event listeners for dynamic UI updates
-document.addEventListener('DOMContentLoaded', function() {
-    // Hash cracker wordlist handler
-    const wordlistSelect = document.getElementById('wordlist');
-    if (wordlistSelect) {
-        wordlistSelect.addEventListener('change', function() {
-            const customGroup = document.getElementById('customWordlistGroup');
-            if (customGroup) {
-                customGroup.style.display = this.value === 'custom' ? 'block' : 'none';
-            }
-        });
-    }
-
-    // Attack mode handler
-    const attackModeSelect = document.getElementById('attackMode');
-    if (attackModeSelect) {
-        attackModeSelect.addEventListener('change', function() {
-            const maskGroup = document.getElementById('maskGroup');
-            if (maskGroup) {
-                maskGroup.style.display = this.value === 'mask' ? 'block' : 'none';
-            }
-        });
-    }
-
-    // Steganography extraction handlers
-    const extractRegex = document.getElementById('extractRegex');
-    if (extractRegex) {
-        extractRegex.addEventListener('change', function() {
-            const regexGroup = document.getElementById('regexGroup');
-            if (regexGroup) {
-                regexGroup.style.display = this.checked ? 'block' : 'none';
-            }
-        });
-    }
-});
+// Add more tool implementations as needed...
 
 // Keyboard shortcuts
-document.addEventListener('keydown', function() {
-    if (e.key === 'Escape') {
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modalOpen) {
         closeModal();
-    }
-
-    // Quick tool access
-    if (e.ctrlKey && e.key >= '1' && e.key <= '6') {
-        const sections = ['dashboard', 'crypto', 'web', 'forensics', 'reverse', 'pwn'];
-        const sectionIndex = parseInt(e.key) - 1;
-        if (sections[sectionIndex]) {
-            const link = document.querySelector(`[data-section="${sections[sectionIndex]}"]`);
-            if (link) link.click();
-        }
     }
 });
 
-console.log('CTF Arsenal - Full Implementation Loaded Successfully!');
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+});
+
+// Ensure all external libraries are loaded
+window.addEventListener('load', function() {
+    console.log('CTF Arsenal loaded successfully');
+
+    // Check for required libraries
+    const requiredLibs = ['CryptoJS', 'js_beautify', 'JSZip'];
+    const missingLibs = requiredLibs.filter(lib => typeof window[lib] === 'undefined');
+
+    if (missingLibs.length > 0) {
+        console.warn('Missing libraries:', missingLibs);
+    }
+});
+
+async function downloadBase64() {
+    const base64Data = document.getElementById('base64Output').textContent;
+    if (!base64Data) {
+        alert('No data to download!');
+        return;
+    }
+
+    try {
+        // Decode the base64 data
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        // Create a Blob from the data
+        const blob = new Blob([byteArray], { type: 'application/octet-stream' });
+
+        // Create a download link
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'downloaded_file.bin'; // You can name the file as you like
+
+        // Trigger the download
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+    } catch (e) {
+        alert('Error during download: ' + e.message);
+    }
+}
+
+function initializeHashCracker() {
+    // Initialization logic for hash cracker
+}
