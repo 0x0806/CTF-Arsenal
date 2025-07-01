@@ -1,17 +1,30 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>CTF Arsenal - Ultimate Security Tool Dashboard</title>
+    
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.min.js"></script>
-
-    <title>CTF Arsenal - Ultimate Tool Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Stylesheets -->
     <link href="style.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="CTF Arsenal - Ultimate collection of 50+ security tools for Capture The Flag competitions">
+    <meta name="keywords" content="CTF, security tools, cryptography, forensics, reverse engineering, web security">
+    <meta name="author" content="0x08006">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 </head>
 <body>
+    <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
@@ -19,65 +32,97 @@
                 <span>CTF Arsenal</span>
             </div>
             <div class="nav-menu">
-                <a href="#" class="nav-link active" data-section="dashboard">Dashboard</a>
-                <a href="#" class="nav-link" data-section="crypto">Cryptography</a>
-                <a href="#" class="nav-link" data-section="web">Web Security</a>
-                <a href="#" class="nav-link" data-section="forensics">Forensics</a>
-                <a href="#" class="nav-link" data-section="reverse">Reverse Eng</a>
-                <a href="#" class="nav-link" data-section="pwn">Binary Pwn</a>
-                <a href="#" class="nav-link" data-section="misc">Miscellaneous</a>
+                <a href="#" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="#" class="nav-link" data-section="crypto">
+                    <i class="fas fa-key"></i> Cryptography
+                </a>
+                <a href="#" class="nav-link" data-section="web">
+                    <i class="fas fa-globe"></i> Web Security
+                </a>
+                <a href="#" class="nav-link" data-section="forensics">
+                    <i class="fas fa-search"></i> Forensics
+                </a>
+                <a href="#" class="nav-link" data-section="reverse">
+                    <i class="fas fa-cogs"></i> Reverse Eng
+                </a>
+                <a href="#" class="nav-link" data-section="pwn">
+                    <i class="fas fa-bug"></i> Binary Pwn
+                </a>
+                <a href="#" class="nav-link" data-section="misc">
+                    <i class="fas fa-puzzle-piece"></i> Miscellaneous
+                </a>
             </div>
         </div>
     </nav>
 
+    <!-- Main Content Container -->
     <main class="main-content">
         <!-- Dashboard Section -->
         <section id="dashboard" class="tool-section active">
             <div class="section-header">
-                <h2><i class="fas fa-tachometer-alt"></i> CTF Tool Dashboard</h2>
-                <p>Your ultimate collection of CTF solving tools</p>
+                <h2><i class="fas fa-shield-alt"></i> CTF Arsenal Dashboard</h2>
+                <p>Your ultimate collection of security tools for CTF competitions</p>
             </div>
 
+            <!-- Statistics Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <i class="fas fa-tools"></i>
                     <h3>50+</h3>
-                    <p>Tools Available</p>
+                    <p>Security Tools</p>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-layer-group"></i>
-                    <h3>6</h3>
-                    <p>Categories</p>
+                    <h3>7</h3>
+                    <p>Tool Categories</p>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-rocket"></i>
                     <h3>Advanced</h3>
-                    <p>Tool Arsenal</p>
+                    <p>Real Implementation</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>100%</h3>
+                    <p>Mobile Responsive</p>
                 </div>
             </div>
 
+            <!-- Quick Access Tools -->
             <div class="quick-tools">
-                <h3>Quick Access Tools</h3>
+                <h3><i class="fas fa-zap"></i> Quick Access Tools</h3>
                 <div class="tool-grid">
                     <div class="tool-card" onclick="showTool('base64')">
                         <i class="fas fa-code"></i>
                         <h4>Base64 Decoder</h4>
-                        <p>Encode/Decode Base64</p>
+                        <p>Encode and decode Base64 strings</p>
                     </div>
-                    <div class="tool-card" onclick="showTool('hash')">
-                        <i class="fas fa-hashtag"></i>
+                    <div class="tool-card" onclick="showTool('hash-identifier')">
+                        <i class="fas fa-fingerprint"></i>
                         <h4>Hash Analyzer</h4>
-                        <p>Identify & crack hashes</p>
+                        <p>Identify and analyze hash types</p>
                     </div>
-                    <div class="tool-card" onclick="showTool('cipher')">
+                    <div class="tool-card" onclick="showTool('caesar')">
                         <i class="fas fa-lock"></i>
                         <h4>Caesar Cipher</h4>
-                        <p>Caesar cipher solver</p>
+                        <p>Classic shift cipher solver</p>
                     </div>
                     <div class="tool-card" onclick="showTool('hex')">
-                        <i class="fas fa-binary"></i>
+                        <i class="fas fa-hashtag"></i>
                         <h4>Hex Converter</h4>
-                        <p>Hex to ASCII converter</p>
+                        <p>Convert between hex and text</p>
+                    </div>
+                    <div class="tool-card" onclick="showTool('steganography')">
+                        <i class="fas fa-image"></i>
+                        <h4>Stego Analyzer</h4>
+                        <p>Advanced steganography detection</p>
+                    </div>
+                    <div class="tool-card" onclick="showTool('jwt-decoder')">
+                        <i class="fas fa-key"></i>
+                        <h4>JWT Decoder</h4>
+                        <p>Decode JSON Web Tokens</p>
                     </div>
                 </div>
             </div>
@@ -87,80 +132,107 @@
         <section id="crypto" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-key"></i> Cryptography Tools</h2>
-                <p>Decode, decrypt, and analyze cryptographic challenges</p>
+                <p>Comprehensive cryptographic analysis and cipher solving tools</p>
             </div>
 
             <div class="tools-container">
+                <!-- Encoding/Decoding Tools -->
                 <div class="tool-category">
-                    <h3>Encoding/Decoding</h3>
+                    <h3><i class="fas fa-exchange-alt"></i> Encoding & Decoding</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('base64')">
                             <i class="fas fa-code"></i>
                             <h4>Base64 Encoder/Decoder</h4>
+                            <p>Standard Base64 encoding and decoding</p>
                         </div>
                         <div class="tool-card" onclick="showTool('url')">
                             <i class="fas fa-link"></i>
                             <h4>URL Encoder/Decoder</h4>
+                            <p>URL percent encoding and decoding</p>
                         </div>
                         <div class="tool-card" onclick="showTool('hex')">
                             <i class="fas fa-hashtag"></i>
                             <h4>Hex Converter</h4>
+                            <p>Hexadecimal to text conversion</p>
                         </div>
                         <div class="tool-card" onclick="showTool('ascii')">
                             <i class="fas fa-font"></i>
                             <h4>ASCII Converter</h4>
+                            <p>ASCII code conversion utilities</p>
+                        </div>
+                        <div class="tool-card" onclick="showTool('binary-converter')">
+                            <i class="fas fa-binary"></i>
+                            <h4>Binary Converter</h4>
+                            <p>Binary, decimal, and hex conversions</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Classical Ciphers -->
                 <div class="tool-category">
-                    <h3>Ciphers</h3>
+                    <h3><i class="fas fa-scroll"></i> Classical Ciphers</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('caesar')">
-                            <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-crown"></i>
                             <h4>Caesar Cipher</h4>
+                            <p>Shift cipher with brute force option</p>
                         </div>
                         <div class="tool-card" onclick="showTool('vigenere')">
                             <i class="fas fa-key"></i>
                             <h4>Vigenère Cipher</h4>
+                            <p>Polyalphabetic substitution cipher</p>
                         </div>
                         <div class="tool-card" onclick="showTool('atbash')">
                             <i class="fas fa-exchange-alt"></i>
                             <h4>Atbash Cipher</h4>
+                            <p>Hebrew alphabet substitution cipher</p>
                         </div>
                         <div class="tool-card" onclick="showTool('rot13')">
                             <i class="fas fa-sync-alt"></i>
                             <h4>ROT13</h4>
+                            <p>Letter substitution cipher</p>
+                        </div>
+                        <div class="tool-card" onclick="showTool('morse-decoder')">
+                            <i class="fas fa-signal"></i>
+                            <h4>Morse Code</h4>
+                            <p>Morse code encoder and decoder</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Hash Analysis -->
                 <div class="tool-category">
-                    <h3>Hash Analysis</h3>
+                    <h3><i class="fas fa-fingerprint"></i> Hash Analysis & Cracking</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('hash-identifier')">
                             <i class="fas fa-search"></i>
                             <h4>Hash Identifier</h4>
+                            <p>Identify hash types and algorithms</p>
                         </div>
                         <div class="tool-card" onclick="showTool('hash-cracker')">
                             <i class="fas fa-hammer"></i>
-                            <h4>Hash Cracker</h4>
+                            <h4>Advanced Hash Cracker</h4>
+                            <p>Dictionary, brute force, and hybrid attacks</p>
                         </div>
                         <div class="tool-card" onclick="showTool('md5')">
-                            <i class="fas fa-fingerprint"></i>
+                            <i class="fas fa-shield-alt"></i>
                             <h4>MD5 Tools</h4>
+                            <p>MD5 hash generation and analysis</p>
                         </div>
                         <div class="tool-card" onclick="showTool('sha')">
                             <i class="fas fa-lock"></i>
                             <h4>SHA Tools</h4>
+                            <p>SHA-1, SHA-256, SHA-512 utilities</p>
                         </div>
                         <div class="tool-card" onclick="showTool('rainbow')">
                             <i class="fas fa-rainbow"></i>
                             <h4>Rainbow Tables</h4>
+                            <p>Pre-computed hash lookup</p>
                         </div>
                         <div class="tool-card" onclick="showTool('password-generator')">
                             <i class="fas fa-key"></i>
                             <h4>Password Generator</h4>
+                            <p>Secure password generation tool</p>
                         </div>
                     </div>
                 </div>
@@ -171,116 +243,138 @@
         <section id="web" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-globe"></i> Web Security Tools</h2>
-                <p>Analyze web applications and find vulnerabilities</p>
+                <p>Comprehensive web application security testing utilities</p>
             </div>
 
             <div class="tools-container">
+                <!-- SQL Injection Tools -->
                 <div class="tool-category">
-                    <h3>SQL Injection</h3>
+                    <h3><i class="fas fa-database"></i> SQL Injection</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('sql-injection')">
                             <i class="fas fa-database"></i>
                             <h4>SQL Injection Tool</h4>
+                            <p>Advanced payload generation and testing</p>
                         </div>
                         <div class="tool-card" onclick="showTool('payload-generator')">
                             <i class="fas fa-bomb"></i>
                             <h4>Payload Generator</h4>
+                            <p>Multi-platform exploit payloads</p>
                         </div>
                         <div class="tool-card" onclick="showTool('jwt-decoder')">
                             <i class="fas fa-key"></i>
                             <h4>JWT Decoder</h4>
+                            <p>JSON Web Token analysis and security audit</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- XSS Analysis -->
                 <div class="tool-category">
-                    <h3>XSS Analysis</h3>
+                    <h3><i class="fas fa-code"></i> Cross-Site Scripting (XSS)</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('xss-payloads')">
                             <i class="fas fa-code"></i>
                             <h4>XSS Payload Generator</h4>
+                            <p>Context-aware XSS payload generation</p>
                         </div>
                         <div class="tool-card" onclick="showTool('js-beautifier')">
                             <i class="fas fa-magic"></i>
-                            <h4>JS Beautifier</h4>
+                            <h4>JavaScript Beautifier</h4>
+                            <p>Format and analyze JavaScript code</p>
                         </div>
                         <div class="tool-card" onclick="showTool('xss-detector')">
                             <i class="fas fa-shield-alt"></i>
                             <h4>XSS Detector</h4>
+                            <p>Detect XSS vulnerabilities</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Request Analysis -->
                 <div class="tool-category">
-                    <h3>Request Analysis</h3>
+                    <h3><i class="fas fa-paper-plane"></i> HTTP Analysis</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('request-builder')">
                             <i class="fas fa-paper-plane"></i>
-                            <h4>Request Builder</h4>
+                            <h4>HTTP Request Builder</h4>
+                            <p>Craft custom HTTP requests</p>
                         </div>
                         <div class="tool-card" onclick="showTool('header-analyzer')">
                             <i class="fas fa-list"></i>
-                            <h4>Header Analyzer</h4>
+                            <h4>Security Header Analyzer</h4>
+                            <p>Analyze HTTP security headers</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Forensics Section -->
+        <!-- Digital Forensics Section -->
         <section id="forensics" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-search"></i> Digital Forensics</h2>
-                <p>Analyze files, images, and digital evidence</p>
+                <p>Advanced file analysis and digital evidence examination tools</p>
             </div>
 
             <div class="tools-container">
+                <!-- File Analysis -->
                 <div class="tool-category">
-                    <h3>File Analysis</h3>
+                    <h3><i class="fas fa-file"></i> File Analysis</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('forensics-analyzer')">
-                            <i class="fas fa-file"></i>
+                            <i class="fas fa-file-medical"></i>
                             <h4>Advanced File Analyzer</h4>
+                            <p>Comprehensive file structure analysis</p>
                         </div>
                         <div class="tool-card" onclick="showTool('metadata-extractor')">
                             <i class="fas fa-info-circle"></i>
                             <h4>Metadata Extractor</h4>
+                            <p>Extract hidden metadata from files</p>
                         </div>
                         <div class="tool-card" onclick="showTool('hex-viewer')">
                             <i class="fas fa-eye"></i>
-                            <h4>Hex Viewer</h4>
+                            <h4>Advanced Hex Viewer</h4>
+                            <p>Binary file inspection and analysis</p>
                         </div>
-                        <div class="tool-card" onclick="showTool('binary-converter')">
-                            <i class="fas fa-exchange-alt"></i>
-                            <h4>Binary Converter</h4>
+                        <div class="tool-card" onclick="showTool('string-extractor')">
+                            <i class="fas fa-text-width"></i>
+                            <h4>String Extractor</h4>
+                            <p>Extract readable strings from binaries</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Steganography -->
                 <div class="tool-category">
-                    <h3>Steganography</h3>
+                    <h3><i class="fas fa-image"></i> Steganography</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('steganography')">
                             <i class="fas fa-image"></i>
                             <h4>Advanced Stego Analyzer</h4>
+                            <p>Multi-method steganography detection</p>
                         </div>
                         <div class="tool-card" onclick="showTool('lsb-extractor')">
                             <i class="fas fa-microscope"></i>
                             <h4>LSB Extractor</h4>
+                            <p>Least Significant Bit analysis</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Network Analysis -->
                 <div class="tool-category">
-                    <h3>Network Analysis</h3>
+                    <h3><i class="fas fa-network-wired"></i> Network Analysis</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('pcap-analyzer')">
                             <i class="fas fa-network-wired"></i>
                             <h4>PCAP Analyzer</h4>
+                            <p>Network packet capture analysis</p>
                         </div>
                         <div class="tool-card" onclick="showTool('packet-viewer')">
                             <i class="fas fa-envelope"></i>
                             <h4>Packet Viewer</h4>
+                            <p>Detailed packet inspection</p>
                         </div>
                     </div>
                 </div>
@@ -291,34 +385,40 @@
         <section id="reverse" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-cogs"></i> Reverse Engineering</h2>
-                <p>Disassemble and analyze binary files</p>
+                <p>Binary analysis and reverse engineering utilities</p>
             </div>
 
             <div class="tools-container">
+                <!-- Disassemblers -->
                 <div class="tool-category">
-                    <h3>Disassemblers</h3>
+                    <h3><i class="fas fa-microchip"></i> Disassembly & Decompilation</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('disassembler')">
                             <i class="fas fa-microchip"></i>
-                            <h4>Disassembler</h4>
+                            <h4>Advanced Disassembler</h4>
+                            <p>Multi-architecture binary disassembly</p>
                         </div>
                         <div class="tool-card" onclick="showTool('decompiler')">
                             <i class="fas fa-code"></i>
                             <h4>Decompiler</h4>
+                            <p>High-level code reconstruction</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Binary Analysis -->
                 <div class="tool-category">
-                    <h3>Binary Analysis</h3>
+                    <h3><i class="fas fa-file-code"></i> Binary Analysis</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('binary-analyzer')">
                             <i class="fas fa-file-code"></i>
                             <h4>Binary Analyzer</h4>
+                            <p>Comprehensive binary file analysis</p>
                         </div>
                         <div class="tool-card" onclick="showTool('string-extractor')">
                             <i class="fas fa-text-width"></i>
                             <h4>String Extractor</h4>
+                            <p>Advanced string extraction and analysis</p>
                         </div>
                     </div>
                 </div>
@@ -329,34 +429,40 @@
         <section id="pwn" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-bug"></i> Binary Exploitation</h2>
-                <p>Find and exploit binary vulnerabilities</p>
+                <p>Advanced binary exploitation and vulnerability research tools</p>
             </div>
 
             <div class="tools-container">
+                <!-- Exploitation Tools -->
                 <div class="tool-category">
-                    <h3>Exploitation Tools</h3>
+                    <h3><i class="fas fa-bomb"></i> Exploitation Framework</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('rop-gadget')">
                             <i class="fas fa-link"></i>
                             <h4>ROP Gadget Finder</h4>
+                            <p>Return-oriented programming gadgets</p>
                         </div>
                         <div class="tool-card" onclick="showTool('shellcode-generator')">
                             <i class="fas fa-terminal"></i>
                             <h4>Shellcode Generator</h4>
+                            <p>Multi-architecture shellcode generation</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Buffer Overflow -->
                 <div class="tool-category">
-                    <h3>Buffer Overflow</h3>
+                    <h3><i class="fas fa-exclamation-triangle"></i> Buffer Overflow</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('pattern-generator')">
                             <i class="fas fa-repeat"></i>
                             <h4>Pattern Generator</h4>
+                            <p>De Bruijn sequence pattern generation</p>
                         </div>
                         <div class="tool-card" onclick="showTool('offset-finder')">
                             <i class="fas fa-crosshairs"></i>
                             <h4>Offset Finder</h4>
+                            <p>Calculate buffer overflow offsets</p>
                         </div>
                     </div>
                 </div>
@@ -367,28 +473,40 @@
         <section id="misc" class="tool-section">
             <div class="section-header">
                 <h2><i class="fas fa-puzzle-piece"></i> Miscellaneous Tools</h2>
-                <p>Various utility tools for CTF challenges</p>
+                <p>Specialized utilities for various CTF challenge types</p>
             </div>
 
             <div class="tools-container">
+                <!-- Data Format Tools -->
                 <div class="tool-category">
-                    <h3>Utilities</h3>
+                    <h3><i class="fas fa-qrcode"></i> Data Formats & Codes</h3>
                     <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('qr-decoder')">
                             <i class="fas fa-qrcode"></i>
                             <h4>QR Code Decoder</h4>
+                            <p>Analyze and decode QR codes</p>
                         </div>
                         <div class="tool-card" onclick="showTool('barcode-decoder')">
                             <i class="fas fa-barcode"></i>
                             <h4>Barcode Decoder</h4>
+                            <p>Multi-format barcode analysis</p>
                         </div>
                         <div class="tool-card" onclick="showTool('morse-decoder')">
                             <i class="fas fa-signal"></i>
-                            <h4>Morse Code</h4>
+                            <h4>Morse Code Translator</h4>
+                            <p>Morse code encoding and decoding</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Programming Languages -->
+                <div class="tool-category">
+                    <h3><i class="fas fa-brain"></i> Esoteric Programming</h3>
+                    <div class="tool-grid">
                         <div class="tool-card" onclick="showTool('brainfuck')">
                             <i class="fas fa-brain"></i>
                             <h4>Brainfuck Interpreter</h4>
+                            <p>Execute Brainfuck programs</p>
                         </div>
                     </div>
                 </div>
@@ -404,7 +522,7 @@
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body" id="modalBody">
-                <!-- Tool content will be loaded here -->
+                <!-- Tool content will be dynamically loaded here -->
             </div>
         </div>
     </div>
@@ -412,11 +530,20 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2025 0x08006 - CTF Arsenal</p>
+            <p>&copy; 2025 0x08006 - CTF Arsenal | Ultimate Security Tool Dashboard</p>
+            <p>Built with ❤️ for the cybersecurity community</p>
         </div>
     </footer>
 
+    <!-- JavaScript -->
     <script src="script.js"></script>
+    
+    <!-- Error Handling -->
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo + '\nColumn: ' + columnNo + '\nError object: ' + JSON.stringify(error));
+            return false;
+        };
+    </script>
 </body>
 </html>
-
