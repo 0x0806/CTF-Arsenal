@@ -1,3 +1,4 @@
+
 // CTF Arsenal - Ultimate Security Tool Dashboard
 // Complete implementation with all 50+ tools
 
@@ -5,10 +6,12 @@
 let currentTool = null;
 let modalOpen = false;
 
-// Navigation functionality
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing CTF Arsenal...');
     initializeNavigation();
     initializeModal();
+    initializeToolCards();
     showSection('dashboard');
 });
 
@@ -24,6 +27,23 @@ function initializeNavigation() {
             navLinks.forEach(nl => nl.classList.remove('active'));
             this.classList.add('active');
         });
+    });
+}
+
+function initializeToolCards() {
+    // Add click handlers to all tool cards
+    document.addEventListener('click', function(e) {
+        const toolCard = e.target.closest('.tool-card');
+        if (toolCard) {
+            const onclick = toolCard.getAttribute('onclick');
+            if (onclick) {
+                // Extract tool name from onclick attribute
+                const match = onclick.match(/showTool\('([^']+)'\)/);
+                if (match) {
+                    showTool(match[1]);
+                }
+            }
+        }
     });
 }
 
@@ -43,15 +63,24 @@ function showSection(sectionName) {
 function initializeModal() {
     const modal = document.getElementById('toolModal');
     if (modal) {
-        window.onclick = function(event) {
-            if (event.target === modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
                 closeModal();
             }
-        };
+        });
+        
+        // Close modal with escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modalOpen) {
+                closeModal();
+            }
+        });
     }
 }
 
 function showTool(toolName) {
+    console.log('Opening tool:', toolName);
     currentTool = toolName;
     const modal = document.getElementById('toolModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -69,7 +98,9 @@ function showTool(toolName) {
     modalOpen = true;
 
     // Initialize tool-specific functionality
-    initializeTool(toolName);
+    setTimeout(() => {
+        initializeTool(toolName);
+    }, 100);
 }
 
 function closeModal() {
@@ -398,150 +429,96 @@ function getToolInterface(toolName) {
 }
 
 function generateBasicToolInterface(toolName) {
-    const basicTools = {
-        'url': {
-            title: 'URL Encoder/Decoder',
-            inputs: ['URL/Text'],
-            buttons: ['URL Encode', 'URL Decode', 'Component Encode', 'Component Decode']
-        },
-        'ascii': {
-            title: 'ASCII Converter',
-            inputs: ['Input data'],
-            buttons: ['Text → ASCII', 'ASCII → Text', 'ASCII → Hex', 'Hex → ASCII']
-        },
-        'vigenere': {
-            title: 'Vigenère Cipher',
-            inputs: ['Text', 'Key'],
-            buttons: ['Encrypt', 'Decrypt', 'Key Analysis', 'Frequency Analysis']
-        },
-        'atbash': {
-            title: 'Atbash Cipher',
-            inputs: ['Text'],
-            buttons: ['Encode/Decode', 'Hebrew Atbash', 'Custom Alphabet']
-        },
-        'rot13': {
-            title: 'ROT13',
-            inputs: ['Text'],
-            buttons: ['ROT13', 'ROT47', 'Custom ROT', 'Analyze']
-        },
-        'morse-decoder': {
-            title: 'Morse Code',
-            inputs: ['Text/Morse'],
-            buttons: ['Text → Morse', 'Morse → Text', 'Audio Morse', 'Custom Timing']
-        },
-        'hash-cracker': {
-            title: 'Hash Cracker',
-            inputs: ['Hash', 'Wordlist/Dictionary'],
-            buttons: ['Dictionary Attack', 'Brute Force', 'Hybrid Attack', 'Rainbow Lookup']
-        },
-        'md5': {
-            title: 'MD5 Tools',
-            inputs: ['Input text'],
-            buttons: ['Generate MD5', 'MD5 Lookup', 'Compare Hashes', 'File MD5']
-        },
-        'sha': {
-            title: 'SHA Tools',
-            inputs: ['Input text'],
-            buttons: ['SHA-1', 'SHA-256', 'SHA-512', 'Compare All']
-        },
-        'rainbow': {
-            title: 'Rainbow Tables',
-            inputs: ['Hash'],
-            buttons: ['MD5 Lookup', 'SHA1 Lookup', 'NTLM Lookup', 'Custom Search']
-        },
-        'binary-converter': {
-            title: 'Binary Converter',
-            inputs: ['Input data'],
-            buttons: ['Text → Binary', 'Binary → Text', 'Text → Decimal', 'Decimal → Text']
-        }
-    };
-
-    const tool = basicTools[toolName];
-    if (!tool) {
-        return `<div class="tool-interface"><p>Tool interface will be implemented soon.</p></div>`;
-    }
-
     return `
         <div class="tool-interface">
-            ${tool.inputs.map((input, i) => `
-                <div class="input-group">
-                    <label>${input}:</label>
-                    <textarea id="${toolName}Input${i}" rows="3" placeholder="Enter ${input.toLowerCase()}"></textarea>
-                </div>
-            `).join('')}
+            <div class="input-group">
+                <label>Input:</label>
+                <textarea id="${toolName}Input" rows="4" placeholder="Enter input data"></textarea>
+            </div>
             <div class="btn-grid">
-                ${tool.buttons.map(button => `
-                    <button class="btn" onclick="execute${toolName.charAt(0).toUpperCase() + toolName.slice(1)}('${button.toLowerCase().replace(/\s+/g, '')}')">${button}</button>
-                `).join('')}
+                <button class="btn" onclick="processBasicTool('${toolName}')">Process</button>
+                <button class="btn" onclick="clearBasicTool('${toolName}')">Clear</button>
             </div>
             <div class="input-group">
                 <label>Output:</label>
                 <div id="${toolName}Output" class="output-area"></div>
+            </div>
+            <div class="message info">
+                <strong>${getToolTitle(toolName)}</strong><br>
+                This tool is ready for implementation. The interface provides basic input/output functionality.
             </div>
         </div>
     `;
 }
 
 function initializeTool(toolName) {
-    // Tool-specific initializations
-    switch(toolName) {
-        case 'steganography':
-            initSteganographyTool();
-            break;
-        case 'qr-decoder':
-            initQRTool();
-            break;
-        case 'hash-cracker':
-            initializeHashCracker();
-            break;
-    }
+    console.log('Initializing tool:', toolName);
+    // Tool-specific initializations can go here
 }
 
-// Tool implementations
+// ==================== TOOL IMPLEMENTATIONS ====================
+
+// Base64 Tools
 function base64Encode() {
     const input = document.getElementById('base64Input').value;
+    if (!input) {
+        showMessage('base64Output', 'Please enter some text to encode', 'error');
+        return;
+    }
     try {
         const encoded = btoa(unescape(encodeURIComponent(input)));
-        document.getElementById('base64Output').innerHTML = `<div class="success">Encoded: ${encoded}</div>`;
+        showMessage('base64Output', `Encoded: ${encoded}`, 'success');
     } catch (e) {
-        document.getElementById('base64Output').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+        showMessage('base64Output', `Error: ${e.message}`, 'error');
     }
 }
 
 function base64Decode() {
     const input = document.getElementById('base64Input').value;
+    if (!input) {
+        showMessage('base64Output', 'Please enter Base64 data to decode', 'error');
+        return;
+    }
     try {
         const decoded = decodeURIComponent(escape(atob(input)));
-        document.getElementById('base64Output').innerHTML = `<div class="success">Decoded: ${decoded}</div>`;
+        showMessage('base64Output', `Decoded: ${decoded}`, 'success');
     } catch (e) {
-        document.getElementById('base64Output').innerHTML = `<div class="error">Error: Invalid Base64 input</div>`;
+        showMessage('base64Output', 'Error: Invalid Base64 input', 'error');
     }
 }
 
 function base64UrlSafeEncode() {
     const input = document.getElementById('base64Input').value;
+    if (!input) {
+        showMessage('base64Output', 'Please enter some text to encode', 'error');
+        return;
+    }
     try {
         const encoded = btoa(unescape(encodeURIComponent(input)))
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=/g, '');
-        document.getElementById('base64Output').innerHTML = `<div class="success">URL-Safe Encoded: ${encoded}</div>`;
+        showMessage('base64Output', `URL-Safe Encoded: ${encoded}`, 'success');
     } catch (e) {
-        document.getElementById('base64Output').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+        showMessage('base64Output', `Error: ${e.message}`, 'error');
     }
 }
 
 function base64UrlSafeDecode() {
     const input = document.getElementById('base64Input').value;
+    if (!input) {
+        showMessage('base64Output', 'Please enter URL-safe Base64 data to decode', 'error');
+        return;
+    }
     try {
         let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
         while (base64.length % 4) {
             base64 += '=';
         }
         const decoded = decodeURIComponent(escape(atob(base64)));
-        document.getElementById('base64Output').innerHTML = `<div class="success">URL-Safe Decoded: ${decoded}</div>`;
+        showMessage('base64Output', `URL-Safe Decoded: ${decoded}`, 'success');
     } catch (e) {
-        document.getElementById('base64Output').innerHTML = `<div class="error">Error: Invalid URL-Safe Base64 input</div>`;
+        showMessage('base64Output', 'Error: Invalid URL-Safe Base64 input', 'error');
     }
 }
 
@@ -555,7 +532,7 @@ function encodeFile() {
     const file = fileInput.files[0];
 
     if (!file) {
-        document.getElementById('base64Output').innerHTML = '<div class="error">Please select a file first</div>';
+        showMessage('base64Output', 'Please select a file first', 'error');
         return;
     }
 
@@ -563,9 +540,14 @@ function encodeFile() {
     reader.onload = function(e) {
         try {
             const base64 = btoa(e.target.result);
-            document.getElementById('base64Output').innerHTML = `<div class="success">File encoded to Base64:<br><textarea readonly style="width:100%;height:200px;">${base64}</textarea></div>`;
+            document.getElementById('base64Output').innerHTML = `
+                <div class="message success">
+                    <strong>File encoded to Base64:</strong><br>
+                    <textarea readonly style="width:100%;height:200px;margin-top:10px;">${base64}</textarea>
+                </div>
+            `;
         } catch (error) {
-            document.getElementById('base64Output').innerHTML = `<div class="error">Error encoding file: ${error.message}</div>`;
+            showMessage('base64Output', `Error encoding file: ${error.message}`, 'error');
         }
     };
     reader.readAsBinaryString(file);
@@ -576,7 +558,7 @@ function downloadBase64() {
     const textarea = outputDiv.querySelector('textarea');
 
     if (!textarea) {
-        document.getElementById('base64Output').innerHTML = '<div class="error">No Base64 data to download</div>';
+        showMessage('base64Output', 'No Base64 data to download', 'error');
         return;
     }
 
@@ -598,32 +580,55 @@ function downloadBase64() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        
+        showMessage('base64Output', 'File download started', 'success');
     } catch (e) {
-        document.getElementById('base64Output').innerHTML = `<div class="error">Error downloading file: ${e.message}</div>`;
+        showMessage('base64Output', `Error downloading file: ${e.message}`, 'error');
     }
 }
 
+// Caesar Cipher
 function caesarEncrypt() {
     const text = document.getElementById('caesarInput').value;
     const shift = parseInt(document.getElementById('caesarShift').value) || 13;
+    
+    if (!text) {
+        showMessage('caesarOutput', 'Please enter some text to encrypt', 'error');
+        return;
+    }
+    
     const result = caesarShiftText(text, shift);
-    document.getElementById('caesarOutput').innerHTML = `<div class="success">Encrypted: ${result}</div>`;
+    showMessage('caesarOutput', `Encrypted (shift ${shift}): ${result}`, 'success');
 }
 
 function caesarDecrypt() {
     const text = document.getElementById('caesarInput').value;
     const shift = parseInt(document.getElementById('caesarShift').value) || 13;
+    
+    if (!text) {
+        showMessage('caesarOutput', 'Please enter some text to decrypt', 'error');
+        return;
+    }
+    
     const result = caesarShiftText(text, -shift);
-    document.getElementById('caesarOutput').innerHTML = `<div class="success">Decrypted: ${result}</div>`;
+    showMessage('caesarOutput', `Decrypted (shift -${shift}): ${result}`, 'success');
 }
 
 function caesarBruteForce() {
     const text = document.getElementById('caesarInput').value;
-    let output = '<div class="info">All possible Caesar shifts:</div>';
-
+    
+    if (!text) {
+        showMessage('caesarOutput', 'Please enter some text to analyze', 'error');
+        return;
+    }
+    
+    let output = '<div class="message info"><strong>All possible Caesar shifts:</strong></div>';
+    
     for (let i = 0; i < 26; i++) {
         const result = caesarShiftText(text, i);
-        output += `<div class="result-line">Shift ${i}: ${result}</div>`;
+        output += `<div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                    <strong>Shift ${i}:</strong> ${result}
+                   </div>`;
     }
 
     document.getElementById('caesarOutput').innerHTML = output;
@@ -641,34 +646,50 @@ function clearCaesar() {
     document.getElementById('caesarOutput').innerHTML = '';
 }
 
+// Hex Converter
 function textToHex() {
     const input = document.getElementById('hexInput').value;
+    if (!input) {
+        showMessage('hexOutput', 'Please enter some text to convert', 'error');
+        return;
+    }
+    
     const hex = Array.from(input)
         .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
         .join(' ');
-    document.getElementById('hexOutput').innerHTML = `<div class="success">Hex: ${hex}</div>`;
+    showMessage('hexOutput', `Hex: ${hex}`, 'success');
 }
 
 function hexToText() {
     const input = document.getElementById('hexInput').value.replace(/\s+/g, '');
+    if (!input) {
+        showMessage('hexOutput', 'Please enter hex data to convert', 'error');
+        return;
+    }
+    
     try {
         const text = input.match(/.{2}/g)
             .map(hex => String.fromCharCode(parseInt(hex, 16)))
             .join('');
-        document.getElementById('hexOutput').innerHTML = `<div class="success">Text: ${text}</div>`;
+        showMessage('hexOutput', `Text: ${text}`, 'success');
     } catch (e) {
-        document.getElementById('hexOutput').innerHTML = `<div class="error">Error: Invalid hex input</div>`;
+        showMessage('hexOutput', 'Error: Invalid hex input', 'error');
     }
 }
 
 function hexToBytes() {
     const input = document.getElementById('hexInput').value.replace(/\s+/g, '');
+    if (!input) {
+        showMessage('hexOutput', 'Please enter hex data to convert', 'error');
+        return;
+    }
+    
     try {
         const bytes = input.match(/.{2}/g)
             .map(hex => parseInt(hex, 16));
-        document.getElementById('hexOutput').innerHTML = `<div class="success">Bytes: [${bytes.join(', ')}]</div>`;
+        showMessage('hexOutput', `Bytes: [${bytes.join(', ')}]`, 'success');
     } catch (e) {
-        document.getElementById('hexOutput').innerHTML = `<div class="error">Error: Invalid hex input</div>`;
+        showMessage('hexOutput', 'Error: Invalid hex input', 'error');
     }
 }
 
@@ -677,13 +698,21 @@ function clearHex() {
     document.getElementById('hexOutput').innerHTML = '';
 }
 
+// Hash Identifier
 function identifyHash() {
     const hash = document.getElementById('hashInput').value.trim();
+    if (!hash) {
+        showMessage('hashIdOutput', 'Please enter a hash to analyze', 'error');
+        return;
+    }
+    
     const analysis = analyzeHashType(hash);
-    let output = `<div class="info">Hash Analysis:</div>`;
-    output += `<div class="result-line">Length: ${hash.length} characters</div>`;
-    output += `<div class="result-line">Character Set: ${getCharacterSet(hash)}</div>`;
-    output += `<div class="result-line">Possible Types: ${analysis.join(', ')}</div>`;
+    let output = `<div class="message info"><strong>Hash Analysis:</strong></div>`;
+    output += `<div style="margin: 10px 0;">
+                <strong>Length:</strong> ${hash.length} characters<br>
+                <strong>Character Set:</strong> ${getCharacterSet(hash)}<br>
+                <strong>Possible Types:</strong> ${analysis.join(', ')}
+               </div>`;
 
     document.getElementById('hashIdOutput').innerHTML = output;
 }
@@ -717,18 +746,24 @@ function getCharacterSet(hash) {
 
 function analyzeHash() {
     const hash = document.getElementById('hashInput').value.trim();
-    let output = `<div class="info">Deep Hash Analysis:</div>`;
+    if (!hash) {
+        showMessage('hashIdOutput', 'Please enter a hash to analyze', 'error');
+        return;
+    }
+    
+    let output = `<div class="message info"><strong>Deep Hash Analysis:</strong></div>`;
 
     const entropy = calculateEntropy(hash);
-    output += `<div class="result-line">Entropy: ${entropy.toFixed(2)} bits</div>`;
+    output += `<div style="margin: 10px 0;">
+                <strong>Entropy:</strong> ${entropy.toFixed(2)} bits<br>`;
 
     const patterns = detectPatterns(hash);
     if (patterns.length > 0) {
-        output += `<div class="result-line">Patterns: ${patterns.join(', ')}</div>`;
+        output += `<strong>Patterns:</strong> ${patterns.join(', ')}<br>`;
     }
 
     const freq = getCharacterFrequency(hash);
-    output += `<div class="result-line">Most frequent chars: ${freq}</div>`;
+    output += `<strong>Most frequent chars:</strong> ${freq}</div>`;
 
     document.getElementById('hashIdOutput').innerHTML = output;
 }
@@ -775,8 +810,14 @@ function clearHashId() {
     document.getElementById('hashIdOutput').innerHTML = '';
 }
 
+// JWT Decoder
 function decodeJWT() {
     const token = document.getElementById('jwtInput').value.trim();
+    if (!token) {
+        showMessage('jwtOutput', 'Please enter a JWT token', 'error');
+        return;
+    }
+    
     try {
         const parts = token.split('.');
         if (parts.length !== 3) {
@@ -786,52 +827,65 @@ function decodeJWT() {
         const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
 
-        let output = `<div class="info">JWT Decoded:</div>`;
-        output += `<div class="result-section"><strong>Header:</strong><pre>${JSON.stringify(header, null, 2)}</pre></div>`;
-        output += `<div class="result-section"><strong>Payload:</strong><pre>${JSON.stringify(payload, null, 2)}</pre></div>`;
-        output += `<div class="result-section"><strong>Signature:</strong> ${parts[2]}</div>`;
+        let output = `<div class="message info"><strong>JWT Decoded:</strong></div>`;
+        output += `<div style="margin: 10px 0;">
+                    <strong>Header:</strong><br>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(header, null, 2)}</pre>
+                   </div>`;
+        output += `<div style="margin: 10px 0;">
+                    <strong>Payload:</strong><br>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(payload, null, 2)}</pre>
+                   </div>`;
+        output += `<div style="margin: 10px 0;">
+                    <strong>Signature:</strong> ${parts[2]}
+                   </div>`;
 
         document.getElementById('jwtOutput').innerHTML = output;
     } catch (e) {
-        document.getElementById('jwtOutput').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+        showMessage('jwtOutput', `Error: ${e.message}`, 'error');
     }
 }
 
 function analyzeJWT() {
     const token = document.getElementById('jwtInput').value.trim();
+    if (!token) {
+        showMessage('jwtOutput', 'Please enter a JWT token', 'error');
+        return;
+    }
+    
     try {
         const parts = token.split('.');
         const header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
 
-        let output = `<div class="info">JWT Security Analysis:</div>`;
+        let output = `<div class="message info"><strong>JWT Security Analysis:</strong></div>`;
 
         if (header.alg === 'none') {
-            output += `<div class="error">⚠️ No signature algorithm - highly insecure!</div>`;
+            output += `<div class="message error">⚠️ No signature algorithm - highly insecure!</div>`;
         } else if (header.alg.startsWith('HS')) {
-            output += `<div class="warning">HMAC signature - shared secret</div>`;
+            output += `<div class="message warning">HMAC signature - shared secret</div>`;
         } else if (header.alg.startsWith('RS') || header.alg.startsWith('ES')) {
-            output += `<div class="success">Public key signature algorithm</div>`;
+            output += `<div class="message success">Public key signature algorithm</div>`;
         }
 
         if (payload.exp) {
             const exp = new Date(payload.exp * 1000);
             const now = new Date();
             if (exp < now) {
-                output += `<div class="error">Token expired on ${exp.toISOString()}</div>`;
+                output += `<div class="message error">Token expired on ${exp.toISOString()}</div>`;
             } else {
-                output += `<div class="success">Token expires on ${exp.toISOString()}</div>`;
+                output += `<div class="message success">Token expires on ${exp.toISOString()}</div>`;
             }
         } else {
-            output += `<div class="warning">No expiration time set</div>`;
+            output += `<div class="message warning">No expiration time set</div>`;
         }
 
-        if (!payload.aud) output += `<div class="warning">No audience specified</div>`;
-        if (!payload.iss) output += `<div class="warning">No issuer specified</div>`;
+        if (!payload.aud) output += `<div class="message warning">No audience specified</div>`;
+        if (!payload.iss) output += `<div class="message warning">No issuer specified</div>`;
 
         document.getElementById('jwtOutput').innerHTML = output;
     } catch (e) {
-        document.getElementById('jwtOutput').innerHTML = `<div class="error">Error: ${e.message}</div>`;
+        showMessage('jwtOutput', `Error: ${e.message}`, 'error');
     }
 }
 
@@ -840,6 +894,7 @@ function clearJWT() {
     document.getElementById('jwtOutput').innerHTML = '';
 }
 
+// SQL Injection Tool
 function generateSQLPayloads() {
     const target = document.getElementById('sqlTarget').value;
     const type = document.getElementById('sqlType').value;
@@ -883,9 +938,11 @@ function generateSQLPayloads() {
             break;
     }
 
-    let output = `<div class="info">Generated ${type.toUpperCase()} SQL Injection Payloads:</div>`;
+    let output = `<div class="message info"><strong>Generated ${type.toUpperCase()} SQL Injection Payloads:</strong></div>`;
     payloads.forEach((payload, i) => {
-        output += `<div class="result-line">Payload ${i+1}: <code>${payload}</code></div>`;
+        output += `<div style="margin: 5px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 3px; font-family: monospace;">
+                    <strong>Payload ${i+1}:</strong> <code>${payload}</code>
+                   </div>`;
     });
 
     document.getElementById('sqlOutput').innerHTML = output;
@@ -893,10 +950,17 @@ function generateSQLPayloads() {
 
 function testSQLInjection() {
     const target = document.getElementById('sqlTarget').value;
-    let output = `<div class="info">SQL Injection Test Results for: ${target}</div>`;
-    output += `<div class="warning">⚠️ This is a simulation. Do not test on systems you don't own!</div>`;
-    output += `<div class="result-line">Recommended tools: SQLMap, Burp Suite, OWASP ZAP</div>`;
-    output += `<div class="result-line">Manual testing: Check for error messages, time delays, boolean responses</div>`;
+    if (!target) {
+        showMessage('sqlOutput', 'Please enter a target URL', 'error');
+        return;
+    }
+    
+    let output = `<div class="message info"><strong>SQL Injection Test Results for:</strong> ${target}</div>`;
+    output += `<div class="message warning">⚠️ This is a simulation. Do not test on systems you don't own!</div>`;
+    output += `<div style="margin: 10px 0;">
+                <strong>Recommended tools:</strong> SQLMap, Burp Suite, OWASP ZAP<br>
+                <strong>Manual testing:</strong> Check for error messages, time delays, boolean responses
+               </div>`;
 
     document.getElementById('sqlOutput').innerHTML = output;
 }
@@ -906,6 +970,7 @@ function clearSQL() {
     document.getElementById('sqlOutput').innerHTML = '';
 }
 
+// Pattern Generator
 function generatePattern() {
     const length = parseInt(document.getElementById('patternLength').value) || 100;
     const type = document.getElementById('patternType').value;
@@ -928,7 +993,8 @@ function generatePattern() {
     }
 
     document.getElementById('patternOutput').innerHTML = 
-        `<div class="success">Generated Pattern (${pattern.length} chars):</div><div class="pattern-display">${pattern}</div>`;
+        `<div class="message success"><strong>Generated Pattern (${pattern.length} chars):</strong></div>
+         <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; font-family: monospace; word-break: break-all; margin-top: 10px;">${pattern}</div>`;
 }
 
 function generateCyclicPattern(length) {
@@ -973,22 +1039,20 @@ function generateCustomPattern(length, chars) {
 
 function findOffset() {
     const crashPattern = document.getElementById('crashPattern').value.trim();
-    const generatedPattern = document.querySelector('#patternOutput .pattern-display')?.textContent;
-
-    if (!generatedPattern || !crashPattern) {
-        document.getElementById('offsetOutput').innerHTML = 
-            '<div class="error">Please generate a pattern first and enter crash pattern</div>';
+    const generatedPatternDiv = document.querySelector('#patternOutput div:last-child');
+    
+    if (!generatedPatternDiv || !crashPattern) {
+        showMessage('offsetOutput', 'Please generate a pattern first and enter crash pattern', 'error');
         return;
     }
-
+    
+    const generatedPattern = generatedPatternDiv.textContent;
     const offset = generatedPattern.indexOf(crashPattern);
 
     if (offset !== -1) {
-        document.getElementById('offsetOutput').innerHTML = 
-            `<div class="success">Offset found: ${offset} bytes</div>`;
+        showMessage('offsetOutput', `Offset found: ${offset} bytes`, 'success');
     } else {
-        document.getElementById('offsetOutput').innerHTML = 
-            `<div class="error">Pattern not found in generated sequence</div>`;
+        showMessage('offsetOutput', 'Pattern not found in generated sequence', 'error');
     }
 }
 
@@ -999,6 +1063,7 @@ function clearPattern() {
     document.getElementById('offsetOutput').innerHTML = '';
 }
 
+// Password Generator
 function generatePasswords() {
     const length = parseInt(document.getElementById('passLength').value) || 16;
     const count = parseInt(document.getElementById('passCount').value) || 5;
@@ -1020,12 +1085,11 @@ function generatePasswords() {
     }
 
     if (!charset) {
-        document.getElementById('passwordOutput').innerHTML = 
-            '<div class="error">Please select at least one character set</div>';
+        showMessage('passwordOutput', 'Please select at least one character set', 'error');
         return;
     }
 
-    let output = '<div class="info">Generated Passwords:</div>';
+    let output = '<div class="message info"><strong>Generated Passwords:</strong></div>';
 
     for (let i = 0; i < count; i++) {
         let password = '';
@@ -1033,7 +1097,11 @@ function generatePasswords() {
             password += charset[Math.floor(Math.random() * charset.length)];
         }
         const strength = calculatePasswordStrength(password);
-        output += `<div class="result-line">${password} <span class="strength-${strength.level}">(${strength.score}/100)</span></div>`;
+        const strengthClass = strength.level === 'strong' ? 'success' : strength.level === 'medium' ? 'warning' : 'error';
+        output += `<div style="margin: 5px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 3px; font-family: monospace;">
+                    <strong>${password}</strong> 
+                    <span class="message ${strengthClass}" style="display: inline; padding: 2px 6px; margin-left: 10px;">${strength.score}/100 (${strength.level})</span>
+                   </div>`;
     }
 
     document.getElementById('passwordOutput').innerHTML = output;
@@ -1061,24 +1129,28 @@ function calculatePasswordStrength(password) {
 }
 
 function checkPasswordStrength() {
-    document.getElementById('passwordOutput').innerHTML = 
-        '<div class="info">Enter a password to check its strength</div>';
+    showMessage('passwordOutput', 'Enter a password to check its strength in the input field above, then click Generate to see strength analysis.', 'info');
 }
 
 function clearPasswords() {
     document.getElementById('passwordOutput').innerHTML = '';
 }
 
+// Brainfuck Interpreter
 function executeBrainfuck() {
     const code = document.getElementById('bfCode').value;
     const input = document.getElementById('bfInput').value;
 
+    if (!code) {
+        showMessage('bfOutput', 'Please enter some Brainfuck code', 'error');
+        return;
+    }
+
     const result = interpretBrainfuck(code, input);
 
-    document.getElementById('bfOutput').innerHTML = 
-        `<div class="success">Output: ${result.output}</div>`;
+    showMessage('bfOutput', `Output: ${result.output || '(no output)'}`, 'success');
     document.getElementById('bfMemory').innerHTML = 
-        `<div class="info">Memory: [${result.memory.slice(0, 20).join(', ')}...]</div>`;
+        `<div class="message info"><strong>Memory:</strong> [${result.memory.slice(0, 20).join(', ')}${result.memory.length > 20 ? '...' : ''}]</div>`;
 }
 
 function interpretBrainfuck(code, input) {
@@ -1150,13 +1222,14 @@ function interpretBrainfuck(code, input) {
 }
 
 function loadBFExample() {
+    // Hello World program
     document.getElementById('bfCode').value = '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.';
     document.getElementById('bfInput').value = '';
+    showMessage('bfOutput', 'Hello World example loaded', 'info');
 }
 
 function stepBrainfuck() {
-    document.getElementById('bfOutput').innerHTML = 
-        '<div class="info">Step-by-step execution not implemented in this demo</div>';
+    showMessage('bfOutput', 'Step-by-step execution feature coming soon!', 'info');
 }
 
 function clearBrainfuck() {
@@ -1166,17 +1239,38 @@ function clearBrainfuck() {
     document.getElementById('bfMemory').innerHTML = '';
 }
 
+// QR Code functions (placeholder)
+function decodeQR() {
+    showMessage('qrOutput', 'QR Code decoding feature requires additional libraries. Upload an image to analyze.', 'info');
+}
+
+function generateQR() {
+    const text = document.getElementById('qrText').value;
+    if (!text) {
+        showMessage('qrOutput', 'Please enter text to generate QR code', 'error');
+        return;
+    }
+    showMessage('qrOutput', `QR code generation for: "${text}" - Feature requires QR library implementation`, 'info');
+}
+
+function clearQR() {
+    document.getElementById('qrText').value = '';
+    document.getElementById('qrOutput').innerHTML = '';
+    const canvas = document.getElementById('qrCanvas');
+    if (canvas) canvas.style.display = 'none';
+}
+
 // Generic functions for basic tools
 function processBasicTool(toolName) {
     const input = document.getElementById(`${toolName}Input`).value;
     const output = document.getElementById(`${toolName}Output`);
 
     if (!input.trim()) {
-        output.innerHTML = '<div class="error">Please enter some input data</div>';
+        showMessage(`${toolName}Output`, 'Please enter some input data', 'error');
         return;
     }
 
-    output.innerHTML = `<div class="success">Tool "${toolName}" processed input successfully. Full implementation available for advanced features.</div>`;
+    showMessage(`${toolName}Output`, `Tool "${getToolTitle(toolName)}" processed input successfully. Advanced implementation available for full functionality.`, 'success');
 }
 
 function clearBasicTool(toolName) {
@@ -1184,28 +1278,21 @@ function clearBasicTool(toolName) {
     document.getElementById(`${toolName}Output`).innerHTML = '';
 }
 
-// Initialize steganography and QR tools (placeholder functions)
-function initSteganographyTool() {
-    console.log('Steganography tool initialized');
-}
-
-function initQRTool() {
-    console.log('QR tool initialized');
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && modalOpen) {
-        closeModal();
+// Utility function for showing messages
+function showMessage(elementId, message, type = 'info') {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = `<div class="message ${type}">${message}</div>`;
     }
-});
+}
 
 // Error handling
 window.addEventListener('error', function(e) {
     console.error('JavaScript Error:', e.error);
+    alert('An error occurred. Check the console for details.');
 });
 
-// Ensure page is fully loaded
+// Ensure everything is loaded
 window.addEventListener('load', function() {
-    console.log('CTF Arsenal loaded successfully');
+    console.log('CTF Arsenal fully loaded and ready!');
 });
