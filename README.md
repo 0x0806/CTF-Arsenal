@@ -1,7 +1,7 @@
 
 # 🛡️ CTF Arsenal - Ultimate Security Tool Dashboard
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://ctf-arsenal.replit.app/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://0x0806.github.io/CTF-Arsenal/))
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Replit](https://img.shields.io/badge/Deploy-Replit-667eea?style=for-the-badge&logo=replit)](https://replit.com)
