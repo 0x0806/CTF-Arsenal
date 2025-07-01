@@ -157,7 +157,7 @@ function getToolTitle(toolName) {
         'barcode-decoder': 'Barcode Decoder',
         'brainfuck': 'Brainfuck Interpreter'
     };
-    return titles[toolName] || 'Unknown Tool';
+    return titles[toolName] || 'CTF Security Tool';
 }
 
 function getToolInterface(toolName) {
@@ -215,6 +215,25 @@ function getToolInterface(toolName) {
                 </div>
             `;
 
+        case 'url':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input Text/URL:</label>
+                        <textarea id="urlInput" rows="4" placeholder="Enter text to encode or URL-encoded text to decode"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="urlEncode()">URL Encode</button>
+                        <button class="btn" onclick="urlDecode()">URL Decode</button>
+                        <button class="btn" onclick="clearUrl()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="urlOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
         case 'hex':
             return `
                 <div class="tool-interface">
@@ -231,6 +250,112 @@ function getToolInterface(toolName) {
                     <div class="input-group">
                         <label>Output:</label>
                         <div id="hexOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'ascii':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input:</label>
+                        <textarea id="asciiInput" rows="4" placeholder="Enter text or ASCII codes (space-separated)"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="textToAscii()">Text → ASCII</button>
+                        <button class="btn" onclick="asciiToText()">ASCII → Text</button>
+                        <button class="btn" onclick="clearAscii()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="asciiOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'binary-converter':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input:</label>
+                        <textarea id="binary-converterInput" rows="4" placeholder="Enter text, binary, or decimal number"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="textToBinary()">Text → Binary</button>
+                        <button class="btn" onclick="binaryToText()">Binary → Text</button>
+                        <button class="btn" onclick="decimalToBinary()">Decimal → Binary</button>
+                        <button class="btn" onclick="clearBinaryConverter()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="binary-converterOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'vigenere':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input Text:</label>
+                        <textarea id="vigenereInput" rows="4" placeholder="Enter text to encrypt/decrypt"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Key:</label>
+                        <input type="text" id="vigenereKey" placeholder="Enter encryption key">
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="vigenereEncrypt()">Encrypt</button>
+                        <button class="btn" onclick="vigenereDecrypt()">Decrypt</button>
+                        <button class="btn" onclick="clearVigenere()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="vigenereOutput" class="output-area"></div>
+                    </div>
+                </div>
+            `;
+
+        case 'atbash':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input Text:</label>
+                        <textarea id="atbashInput" rows="4" placeholder="Enter text to transform with Atbash cipher"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="atbashTransform()">Transform</button>
+                        <button class="btn" onclick="clearAtbash()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="atbashOutput" class="output-area"></div>
+                    </div>
+                    <div class="message info">
+                        <strong>Atbash Cipher:</strong><br>
+                        Ancient Hebrew substitution cipher where A↔Z, B↔Y, C↔X, etc.
+                    </div>
+                </div>
+            `;
+
+        case 'rot13':
+            return `
+                <div class="tool-interface">
+                    <div class="input-group">
+                        <label>Input Text:</label>
+                        <textarea id="rot13Input" rows="4" placeholder="Enter text to encode/decode with ROT13"></textarea>
+                    </div>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="rot13Encode()">ROT13 Transform</button>
+                        <button class="btn" onclick="clearRot13()">Clear</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Output:</label>
+                        <div id="rot13Output" class="output-area"></div>
+                    </div>
+                    <div class="message info">
+                        <strong>ROT13:</strong><br>
+                        Simple letter substitution cipher that replaces each letter with the letter 13 positions after it in the alphabet.
                     </div>
                 </div>
             `;
@@ -1258,6 +1383,218 @@ function clearQR() {
     document.getElementById('qrOutput').innerHTML = '';
     const canvas = document.getElementById('qrCanvas');
     if (canvas) canvas.style.display = 'none';
+}
+
+// URL Encoder/Decoder
+function urlEncode() {
+    const input = document.getElementById('urlInput').value;
+    if (!input) {
+        showMessage('urlOutput', 'Please enter some text to encode', 'error');
+        return;
+    }
+    const encoded = encodeURIComponent(input);
+    showMessage('urlOutput', `Encoded: ${encoded}`, 'success');
+}
+
+function urlDecode() {
+    const input = document.getElementById('urlInput').value;
+    if (!input) {
+        showMessage('urlOutput', 'Please enter URL-encoded text to decode', 'error');
+        return;
+    }
+    try {
+        const decoded = decodeURIComponent(input);
+        showMessage('urlOutput', `Decoded: ${decoded}`, 'success');
+    } catch (e) {
+        showMessage('urlOutput', 'Error: Invalid URL encoding', 'error');
+    }
+}
+
+function clearUrl() {
+    document.getElementById('urlInput').value = '';
+    document.getElementById('urlOutput').innerHTML = '';
+}
+
+// ASCII Converter
+function textToAscii() {
+    const input = document.getElementById('asciiInput').value;
+    if (!input) {
+        showMessage('asciiOutput', 'Please enter some text to convert', 'error');
+        return;
+    }
+    const ascii = Array.from(input).map(c => c.charCodeAt(0)).join(' ');
+    showMessage('asciiOutput', `ASCII: ${ascii}`, 'success');
+}
+
+function asciiToText() {
+    const input = document.getElementById('asciiInput').value.trim();
+    if (!input) {
+        showMessage('asciiOutput', 'Please enter ASCII codes to convert', 'error');
+        return;
+    }
+    try {
+        const codes = input.split(/\s+/).map(code => parseInt(code, 10));
+        const text = codes.map(code => String.fromCharCode(code)).join('');
+        showMessage('asciiOutput', `Text: ${text}`, 'success');
+    } catch (e) {
+        showMessage('asciiOutput', 'Error: Invalid ASCII codes', 'error');
+    }
+}
+
+function clearAscii() {
+    document.getElementById('asciiInput').value = '';
+    document.getElementById('asciiOutput').innerHTML = '';
+}
+
+// Binary Converter
+function textToBinary() {
+    const input = document.getElementById('binary-converterInput').value;
+    if (!input) {
+        showMessage('binary-converterOutput', 'Please enter some text to convert', 'error');
+        return;
+    }
+    const binary = Array.from(input).map(c => c.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+    showMessage('binary-converterOutput', `Binary: ${binary}`, 'success');
+}
+
+function binaryToText() {
+    const input = document.getElementById('binary-converterInput').value.trim();
+    if (!input) {
+        showMessage('binary-converterOutput', 'Please enter binary data to convert', 'error');
+        return;
+    }
+    try {
+        const binary = input.replace(/\s+/g, '');
+        if (binary.length % 8 !== 0) {
+            throw new Error('Binary length must be multiple of 8');
+        }
+        const text = binary.match(/.{8}/g).map(b => String.fromCharCode(parseInt(b, 2))).join('');
+        showMessage('binary-converterOutput', `Text: ${text}`, 'success');
+    } catch (e) {
+        showMessage('binary-converterOutput', 'Error: Invalid binary input', 'error');
+    }
+}
+
+function decimalToBinary() {
+    const input = document.getElementById('binary-converterInput').value.trim();
+    if (!input) {
+        showMessage('binary-converterOutput', 'Please enter a decimal number', 'error');
+        return;
+    }
+    const decimal = parseInt(input, 10);
+    if (isNaN(decimal)) {
+        showMessage('binary-converterOutput', 'Error: Invalid decimal number', 'error');
+        return;
+    }
+    const binary = decimal.toString(2);
+    showMessage('binary-converterOutput', `Binary: ${binary}`, 'success');
+}
+
+function clearBinaryConverter() {
+    document.getElementById('binary-converterInput').value = '';
+    document.getElementById('binary-converterOutput').innerHTML = '';
+}
+
+// ROT13 implementation
+function rot13Encode() {
+    const input = document.getElementById('rot13Input').value;
+    if (!input) {
+        showMessage('rot13Output', 'Please enter some text to encode', 'error');
+        return;
+    }
+    const encoded = input.replace(/[A-Za-z]/g, function(char) {
+        const start = char <= 'Z' ? 65 : 97;
+        return String.fromCharCode(((char.charCodeAt(0) - start + 13) % 26) + start);
+    });
+    showMessage('rot13Output', `ROT13: ${encoded}`, 'success');
+}
+
+function clearRot13() {
+    document.getElementById('rot13Input').value = '';
+    document.getElementById('rot13Output').innerHTML = '';
+}
+
+// Vigenère Cipher
+function vigenereEncrypt() {
+    const text = document.getElementById('vigenereInput').value.toUpperCase();
+    const key = document.getElementById('vigenereKey').value.toUpperCase();
+    
+    if (!text || !key) {
+        showMessage('vigenereOutput', 'Please enter both text and key', 'error');
+        return;
+    }
+    
+    let result = '';
+    let keyIndex = 0;
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char >= 'A' && char <= 'Z') {
+            const shift = key[keyIndex % key.length].charCodeAt(0) - 65;
+            result += String.fromCharCode(((char.charCodeAt(0) - 65 + shift) % 26) + 65);
+            keyIndex++;
+        } else {
+            result += char;
+        }
+    }
+    
+    showMessage('vigenereOutput', `Encrypted: ${result}`, 'success');
+}
+
+function vigenereDecrypt() {
+    const text = document.getElementById('vigenereInput').value.toUpperCase();
+    const key = document.getElementById('vigenereKey').value.toUpperCase();
+    
+    if (!text || !key) {
+        showMessage('vigenereOutput', 'Please enter both text and key', 'error');
+        return;
+    }
+    
+    let result = '';
+    let keyIndex = 0;
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char >= 'A' && char <= 'Z') {
+            const shift = key[keyIndex % key.length].charCodeAt(0) - 65;
+            result += String.fromCharCode(((char.charCodeAt(0) - 65 - shift + 26) % 26) + 65);
+            keyIndex++;
+        } else {
+            result += char;
+        }
+    }
+    
+    showMessage('vigenereOutput', `Decrypted: ${result}`, 'success');
+}
+
+function clearVigenere() {
+    document.getElementById('vigenereInput').value = '';
+    document.getElementById('vigenereKey').value = '';
+    document.getElementById('vigenereOutput').innerHTML = '';
+}
+
+// Atbash Cipher
+function atbashTransform() {
+    const input = document.getElementById('atbashInput').value;
+    if (!input) {
+        showMessage('atbashOutput', 'Please enter some text to transform', 'error');
+        return;
+    }
+    
+    const result = input.replace(/[a-zA-Z]/g, function(char) {
+        if (char >= 'a' && char <= 'z') {
+            return String.fromCharCode(122 - (char.charCodeAt(0) - 97));
+        } else {
+            return String.fromCharCode(90 - (char.charCodeAt(0) - 65));
+        }
+    });
+    
+    showMessage('atbashOutput', `Atbash: ${result}`, 'success');
+}
+
+function clearAtbash() {
+    document.getElementById('atbashInput').value = '';
+    document.getElementById('atbashOutput').innerHTML = '';
 }
 
 // Generic functions for basic tools
