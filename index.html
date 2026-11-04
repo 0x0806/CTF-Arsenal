@@ -1,603 +1,270 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Arsenal - Ultimate Security Tool Dashboard | 50+ CTF Tools</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="CTF Arsenal: Ultimate collection of 50+ professional security tools for Capture The Flag competitions. Features cryptography, web security, forensics, reverse engineering, binary exploitation, and steganography tools. Free online CTF toolkit.">
-    <meta name="keywords" content="CTF tools, capture the flag, cybersecurity tools, cryptography decoder, hash cracker, forensics analyzer, reverse engineering, web security testing, SQL injection tools, XSS payloads, steganography, binary exploitation, security challenges, hacking tools, penetration testing, ethical hacking, cybersecurity education, information security, CTF competition tools, online security toolkit">
-    <meta name="author" content="0x08006">
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="English">
-    <meta name="revisit-after" content="7 days">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="CTF Arsenal - Ultimate Security Tool Dashboard">
-    <meta property="og:description" content="Professional collection of 50+ security tools for CTF competitions. Cryptography, forensics, web security, and more.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ctf-arsenal.replit.app">
-    <meta property="og:site_name" content="CTF Arsenal">
-    <meta property="og:locale" content="en_US">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="CTF Arsenal - Ultimate Security Tool Dashboard">
-    <meta name="twitter:description" content="Professional collection of 50+ security tools for CTF competitions">
-    <meta name="twitter:creator" content="@0x08006">
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://ctf-arsenal.replit.app">
-    
-    <!-- Performance optimizations -->
-    <link rel="prefetch" href="script.js">
-    <link rel="prefetch" href="style.css">
-    
-    <!-- External Libraries -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
-    
-    <!-- Stylesheets -->
-    <link href="style.css" rel="stylesheet" type="text/css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
-    
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    
-    <!-- Schema.org structured data -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "CTF Arsenal",
-        "description": "Ultimate collection of 50+ security tools for Capture The Flag competitions",
-        "url": "https://ctf-arsenal.replit.app",
-        "applicationCategory": "SecurityApplication",
-        "operatingSystem": "Web Browser",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-        },
-        "creator": {
-            "@type": "Person",
-            "name": "0x08006"
-        },
-        "keywords": "CTF tools, cybersecurity, cryptography, forensics, reverse engineering"
-    }
-    </script>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTF Arsenal — Field Console for Capture The Flag</title>
+
+<meta name="description" content="CTF Arsenal is a 75+ tool field console for Capture The Flag competitions: cryptography, web security, forensics, reverse engineering, binary exploitation, OSINT and competition utilities, all running client-side in your browser.">
+<meta name="keywords" content="CTF tools, capture the flag, cybersecurity tools, cryptography decoder, hash cracker, forensics analyzer, reverse engineering, web security testing, steganography, binary exploitation, security challenges, pentesting, ethical hacking, CTF toolkit">
+<meta name="author" content="0x0806">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#161b22">
+
+<meta property="og:title" content="CTF Arsenal — Field Console for Capture The Flag">
+<meta property="og:description" content="75+ working tools across cryptography, web, forensics, reverse engineering, pwn, OSINT and competition utilities. Runs entirely in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://0x0806.github.io/CTF-Arsenal/">
+<meta property="og:site_name" content="CTF Arsenal">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CTF Arsenal — Field Console for CTF">
+<meta name="twitter:description" content="75+ working CTF tools, client-side, no signup.">
+
+<link rel="canonical" href="https://0x0806.github.io/CTF-Arsenal/">
+
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="style.css" rel="stylesheet" type="text/css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.4.3/forge.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "CTF Arsenal",
+  "description": "75+ client-side tools for Capture The Flag competitions across cryptography, web security, forensics, reverse engineering, binary exploitation, OSINT and competition utilities.",
+  "url": "https://0x0806.github.io/CTF-Arsenal/",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Any (Web Browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "creator": { "@type": "Person", "name": "0x0806" }
+}
+</script>
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar" role="navigation" aria-label="Main navigation">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-shield-alt" aria-hidden="true"></i>
-                <span>CTF Arsenal</span>
-            </div>
-            <div class="nav-menu">
-                <a href="#dashboard" class="nav-link active" data-section="dashboard" aria-current="page">
-                    <i class="fas fa-tachometer-alt" aria-hidden="true"></i> Dashboard
-                </a>
-                <a href="#" class="nav-link" data-section="crypto">
-                    <i class="fas fa-key"></i> Cryptography
-                </a>
-                <a href="#" class="nav-link" data-section="web">
-                    <i class="fas fa-globe"></i> Web Security
-                </a>
-                <a href="#" class="nav-link" data-section="forensics">
-                    <i class="fas fa-search"></i> Forensics
-                </a>
-                <a href="#" class="nav-link" data-section="reverse">
-                    <i class="fas fa-cogs"></i> Reverse Eng
-                </a>
-                <a href="#" class="nav-link" data-section="pwn">
-                    <i class="fas fa-bug"></i> Binary Pwn
-                </a>
-                <a href="#" class="nav-link" data-section="misc">
-                    <i class="fas fa-puzzle-piece"></i> Miscellaneous
-                </a>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Main Content Container -->
-    <main class="main-content">
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="tool-section active" aria-labelledby="dashboard-title">
-            <header class="section-header">
-                <h1 id="dashboard-title"><i class="fas fa-shield-alt" aria-hidden="true"></i> CTF Arsenal Dashboard</h1>
-                <p>Your ultimate collection of 50+ professional security tools for Capture The Flag competitions and cybersecurity education</p>
-            </header>
+<a class="skip-link" href="#main">Skip to tools</a>
 
-            <!-- Statistics Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="fas fa-tools"></i>
-                    <h3>50+</h3>
-                    <p>Security Tools</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-layer-group"></i>
-                    <h3>7</h3>
-                    <p>Tool Categories</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-rocket"></i>
-                    <h3>Advanced</h3>
-                    <p> Implementation</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h3>100%</h3>
-                    <p>Mobile Responsive</p>
-                </div>
-            </div>
+<div class="shell">
 
-            <!-- Quick Access Tools -->
-            <div class="quick-tools">
-                <h3><i class="fas fa-zap"></i> Quick Access Tools</h3>
-                <div class="tool-grid">
-                    <div class="tool-card" onclick="showTool('base64')">
-                        <i class="fas fa-code"></i>
-                        <h4>Base64 Decoder</h4>
-                        <p>Encode and decode Base64 strings</p>
-                    </div>
-                    <div class="tool-card" onclick="showTool('hash-identifier')">
-                        <i class="fas fa-fingerprint"></i>
-                        <h4>Hash Analyzer</h4>
-                        <p>Identify and analyze hash types</p>
-                    </div>
-                    <div class="tool-card" onclick="showTool('caesar')">
-                        <i class="fas fa-lock"></i>
-                        <h4>Caesar Cipher</h4>
-                        <p>Classic shift cipher solver</p>
-                    </div>
-                    <div class="tool-card" onclick="showTool('hex')">
-                        <i class="fas fa-hashtag"></i>
-                        <h4>Hex Converter</h4>
-                        <p>Convert between hex and text</p>
-                    </div>
-                    <div class="tool-card" onclick="showTool('steganography')">
-                        <i class="fas fa-image"></i>
-                        <h4>Stego Analyzer</h4>
-                        <p>Advanced steganography detection</p>
-                    </div>
-                    <div class="tool-card" onclick="showTool('jwt-decoder')">
-                        <i class="fas fa-key"></i>
-                        <h4>JWT Decoder</h4>
-                        <p>Decode JSON Web Tokens</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Cryptography Section -->
-        <section id="crypto" class="tool-section" aria-labelledby="crypto-title">
-            <header class="section-header">
-                <h1 id="crypto-title"><i class="fas fa-key" aria-hidden="true"></i> Cryptography Tools</h1>
-                <p>Comprehensive cryptographic analysis and cipher solving tools for security professionals</p>
-            </header>
-
-            <div class="tools-container">
-                <!-- Encoding/Decoding Tools -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-exchange-alt"></i> Encoding & Decoding</h3>
-                    <div class="tool-grid">
-                        <article class="tool-card" onclick="showTool('base64')" tabindex="0" role="button" aria-label="Open Base64 Encoder/Decoder tool">
-                            <i class="fas fa-code" aria-hidden="true"></i>
-                            <h4>Base64 Encoder/Decoder</h4>
-                            <p>Standard Base64 encoding and decoding for CTF challenges</p>
-                        </article>
-                        <article class="tool-card" onclick="showTool('url')" tabindex="0" role="button" aria-label="Open URL Encoder/Decoder tool">
-                            <i class="fas fa-link" aria-hidden="true"></i>
-                            <h4>URL Encoder/Decoder</h4>
-                            <p>URL percent encoding and decoding</p>
-                        </article>
-                        <article class="tool-card" onclick="showTool('hex')" tabindex="0" role="button" aria-label="Open Hex Converter tool">
-                            <i class="fas fa-hashtag" aria-hidden="true"></i>
-                            <h4>Hex Converter</h4>
-                            <p>Hexadecimal to text conversion</p>
-                        </article>
-                        <article class="tool-card" onclick="showTool('ascii')" tabindex="0" role="button" aria-label="Open ASCII Converter tool">
-                            <i class="fas fa-font" aria-hidden="true"></i>
-                            <h4>ASCII Converter</h4>
-                            <p>ASCII code conversion utilities</p>
-                        </article>
-                        <article class="tool-card" onclick="showTool('binary-converter')" tabindex="0" role="button" aria-label="Open Binary Converter tool">
-                            <i class="fas fa-binary" aria-hidden="true"></i>
-                            <h4>Binary Converter</h4>
-                            <p>Binary, decimal, and hex conversions</p>
-                        </article>
-                    </div>
-                </div>
-
-                <!-- Classical Ciphers -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-scroll"></i> Classical Ciphers</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('caesar')">
-                            <i class="fas fa-crown"></i>
-                            <h4>Caesar Cipher</h4>
-                            <p>Shift cipher with brute force option</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('vigenere')">
-                            <i class="fas fa-key"></i>
-                            <h4>Vigenère Cipher</h4>
-                            <p>Polyalphabetic substitution cipher</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('atbash')">
-                            <i class="fas fa-exchange-alt"></i>
-                            <h4>Atbash Cipher</h4>
-                            <p>Hebrew alphabet substitution cipher</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('rot13')">
-                            <i class="fas fa-sync-alt"></i>
-                            <h4>ROT13</h4>
-                            <p>Letter substitution cipher</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('morse-decoder')">
-                            <i class="fas fa-signal"></i>
-                            <h4>Morse Code</h4>
-                            <p>Morse code encoder and decoder</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hash Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-fingerprint"></i> Hash Analysis & Cracking</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('hash-identifier')">
-                            <i class="fas fa-search"></i>
-                            <h4>Hash Identifier</h4>
-                            <p>Identify hash types and algorithms</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('hash-cracker')">
-                            <i class="fas fa-hammer"></i>
-                            <h4>Advanced Hash Cracker</h4>
-                            <p>Dictionary, brute force, and hybrid attacks</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('md5')">
-                            <i class="fas fa-shield-alt"></i>
-                            <h4>MD5 Tools</h4>
-                            <p>MD5 hash generation and analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('sha')">
-                            <i class="fas fa-lock"></i>
-                            <h4>SHA Tools</h4>
-                            <p>SHA-1, SHA-256, SHA-512 utilities</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('rainbow')">
-                            <i class="fas fa-rainbow"></i>
-                            <h4>Rainbow Tables</h4>
-                            <p>Pre-computed hash lookup</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('password-generator')">
-                            <i class="fas fa-key"></i>
-                            <h4>Password Generator</h4>
-                            <p>Secure password generation tool</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Web Security Section -->
-        <section id="web" class="tool-section">
-            <div class="section-header">
-                <h2><i class="fas fa-globe"></i> Web Security Tools</h2>
-                <p>Comprehensive web application security testing utilities</p>
-            </div>
-
-            <div class="tools-container">
-                <!-- SQL Injection Tools -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-database"></i> SQL Injection</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('sql-injection')">
-                            <i class="fas fa-database"></i>
-                            <h4>SQL Injection Tool</h4>
-                            <p>Advanced payload generation and testing</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('payload-generator')">
-                            <i class="fas fa-bomb"></i>
-                            <h4>Payload Generator</h4>
-                            <p>Multi-platform exploit payloads</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('jwt-decoder')">
-                            <i class="fas fa-key"></i>
-                            <h4>JWT Decoder</h4>
-                            <p>JSON Web Token analysis and security audit</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- XSS Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-code"></i> Cross-Site Scripting (XSS)</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('xss-payloads')">
-                            <i class="fas fa-code"></i>
-                            <h4>XSS Payload Generator</h4>
-                            <p>Context-aware XSS payload generation</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('js-beautifier')">
-                            <i class="fas fa-magic"></i>
-                            <h4>JavaScript Beautifier</h4>
-                            <p>Format and analyze JavaScript code</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('xss-detector')">
-                            <i class="fas fa-shield-alt"></i>
-                            <h4>XSS Detector</h4>
-                            <p>Detect XSS vulnerabilities</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Request Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-paper-plane"></i> HTTP Analysis</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('request-builder')">
-                            <i class="fas fa-paper-plane"></i>
-                            <h4>HTTP Request Builder</h4>
-                            <p>Craft custom HTTP requests</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('header-analyzer')">
-                            <i class="fas fa-list"></i>
-                            <h4>Security Header Analyzer</h4>
-                            <p>Analyze HTTP security headers</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Digital Forensics Section -->
-        <section id="forensics" class="tool-section">
-            <div class="section-header">
-                <h2><i class="fas fa-search"></i> Digital Forensics</h2>
-                <p>Advanced file analysis and digital evidence examination tools</p>
-            </div>
-
-            <div class="tools-container">
-                <!-- File Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-file"></i> File Analysis</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('forensics-analyzer')">
-                            <i class="fas fa-file-medical"></i>
-                            <h4>Advanced File Analyzer</h4>
-                            <p>Comprehensive file structure analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('metadata-extractor')">
-                            <i class="fas fa-info-circle"></i>
-                            <h4>Metadata Extractor</h4>
-                            <p>Extract hidden metadata from files</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('hex-viewer')">
-                            <i class="fas fa-eye"></i>
-                            <h4>Advanced Hex Viewer</h4>
-                            <p>Binary file inspection and analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('string-extractor')">
-                            <i class="fas fa-text-width"></i>
-                            <h4>String Extractor</h4>
-                            <p>Extract readable strings from binaries</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Steganography -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-image"></i> Steganography</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('steganography')">
-                            <i class="fas fa-image"></i>
-                            <h4>Advanced Stego Analyzer</h4>
-                            <p>Multi-method steganography detection</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('lsb-extractor')">
-                            <i class="fas fa-microscope"></i>
-                            <h4>LSB Extractor</h4>
-                            <p>Least Significant Bit analysis</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Network Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-network-wired"></i> Network Analysis</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('pcap-analyzer')">
-                            <i class="fas fa-network-wired"></i>
-                            <h4>PCAP Analyzer</h4>
-                            <p>Network packet capture analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('packet-viewer')">
-                            <i class="fas fa-envelope"></i>
-                            <h4>Packet Viewer</h4>
-                            <p>Detailed packet inspection</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Reverse Engineering Section -->
-        <section id="reverse" class="tool-section">
-            <div class="section-header">
-                <h2><i class="fas fa-cogs"></i> Reverse Engineering</h2>
-                <p>Binary analysis and reverse engineering utilities</p>
-            </div>
-
-            <div class="tools-container">
-                <!-- Disassemblers -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-microchip"></i> Disassembly & Decompilation</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('disassembler')">
-                            <i class="fas fa-microchip"></i>
-                            <h4>Advanced Disassembler</h4>
-                            <p>Multi-architecture binary disassembly</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('decompiler')">
-                            <i class="fas fa-code"></i>
-                            <h4>Decompiler</h4>
-                            <p>High-level code reconstruction</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Binary Analysis -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-file-code"></i> Binary Analysis</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('binary-analyzer')">
-                            <i class="fas fa-file-code"></i>
-                            <h4>Binary Analyzer</h4>
-                            <p>Comprehensive binary file analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('string-extractor')">
-                            <i class="fas fa-text-width"></i>
-                            <h4>String Extractor</h4>
-                            <p>Advanced string extraction and analysis</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Binary Exploitation Section -->
-        <section id="pwn" class="tool-section">
-            <div class="section-header">
-                <h2><i class="fas fa-bug"></i> Binary Exploitation</h2>
-                <p>Advanced binary exploitation and vulnerability research tools</p>
-            </div>
-
-            <div class="tools-container">
-                <!-- Exploitation Tools -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-bomb"></i> Exploitation Framework</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('rop-gadget')">
-                            <i class="fas fa-link"></i>
-                            <h4>ROP Gadget Finder</h4>
-                            <p>Return-oriented programming gadgets</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('shellcode-generator')">
-                            <i class="fas fa-terminal"></i>
-                            <h4>Shellcode Generator</h4>
-                            <p>Multi-architecture shellcode generation</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Buffer Overflow -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Buffer Overflow</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('pattern-generator')">
-                            <i class="fas fa-repeat"></i>
-                            <h4>Pattern Generator</h4>
-                            <p>De Bruijn sequence pattern generation</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('offset-finder')">
-                            <i class="fas fa-crosshairs"></i>
-                            <h4>Offset Finder</h4>
-                            <p>Calculate buffer overflow offsets</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Miscellaneous Section -->
-        <section id="misc" class="tool-section">
-            <div class="section-header">
-                <h2><i class="fas fa-puzzle-piece"></i> Miscellaneous Tools</h2>
-                <p>Specialized utilities for various CTF challenge types</p>
-            </div>
-
-            <div class="tools-container">
-                <!-- Data Format Tools -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-qrcode"></i> Data Formats & Codes</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('qr-decoder')">
-                            <i class="fas fa-qrcode"></i>
-                            <h4>QR Code Decoder</h4>
-                            <p>Analyze and decode QR codes</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('barcode-decoder')">
-                            <i class="fas fa-barcode"></i>
-                            <h4>Barcode Decoder</h4>
-                            <p>Multi-format barcode analysis</p>
-                        </div>
-                        <div class="tool-card" onclick="showTool('morse-decoder')">
-                            <i class="fas fa-signal"></i>
-                            <h4>Morse Code Translator</h4>
-                            <p>Morse code encoding and decoding</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Programming Languages -->
-                <div class="tool-category">
-                    <h3><i class="fas fa-brain"></i> Esoteric Programming</h3>
-                    <div class="tool-grid">
-                        <div class="tool-card" onclick="showTool('brainfuck')">
-                            <i class="fas fa-brain"></i>
-                            <h4>Brainfuck Interpreter</h4>
-                            <p>Execute Brainfuck programs</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Tool Modal -->
-    <div id="toolModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Tool Name</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Tool content will be dynamically loaded here -->
-            </div>
-        </div>
+  <!-- Rail: persistent index -->
+  <aside class="rail" id="rail">
+    <div class="rail-top">
+      <button class="rail-brand" id="railToggle" aria-label="Toggle navigation">
+        <span class="brand-mark" aria-hidden="true">#</span>
+        <span class="brand-text">CTF ARSENAL</span>
+      </button>
+      <button class="palette-trigger" id="paletteTrigger" aria-haspopup="dialog" aria-controls="palette">
+        <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+        <span>Jump to tool</span>
+        <kbd>⌘K</kbd>
+      </button>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer" role="contentinfo">
-        <div class="footer-content">
-            <p>&copy; 2025 0x08006 - CTF Arsenal | Ultimate Security Tool Dashboard</p>
-            <p>Built with ❤️ for the cybersecurity community | Free CTF Tools | Educational Use Only</p>
-        </div>
-    </footer>
+    <nav class="rail-nav" aria-label="Tool categories">
+      <a href="#dashboard" class="rail-link active" data-section="dashboard"><span class="rail-code">OPS-00</span>Console</a>
+      <a href="#crypto" class="rail-link" data-section="crypto"><span class="rail-code">CRY</span>Cryptography</a>
+      <a href="#web" class="rail-link" data-section="web"><span class="rail-code">WEB</span>Web Security</a>
+      <a href="#forensics" class="rail-link" data-section="forensics"><span class="rail-code">FOR</span>Forensics</a>
+      <a href="#reverse" class="rail-link" data-section="reverse"><span class="rail-code">REV</span>Reverse Eng.</a>
+      <a href="#pwn" class="rail-link" data-section="pwn"><span class="rail-code">PWN</span>Binary Pwn</a>
+      <a href="#misc" class="rail-link" data-section="misc"><span class="rail-code">MSC</span>OSINT &amp; Misc</a>
+      <a href="#utils" class="rail-link" data-section="utils"><span class="rail-code">UTL</span>Competition Utils</a>
+    </nav>
 
-    <!-- JavaScript -->
-    <script src="script.js"></script>
-    
-    <!-- Error Handling -->
-    <script>
-        window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo + '\nColumn: ' + columnNo + '\nError object: ' + JSON.stringify(error));
-            return false;
-        };
-    </script>
+    <div class="rail-bottom">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark console">
+        <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+        <span id="themeToggleLabel">Dark console</span>
+      </button>
+      <a class="rail-ext" href="https://github.com/0x0806/CTF-Arsenal" target="_blank" rel="noopener">
+        <i class="fab fa-github" aria-hidden="true"></i> Source
+      </a>
+    </div>
+  </aside>
+
+  <!-- Command palette -->
+  <div class="palette-overlay" id="paletteOverlay" hidden>
+    <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Jump to a tool">
+      <div class="palette-input-row">
+        <i class="fas fa-terminal" aria-hidden="true"></i>
+        <input id="paletteInput" type="text" placeholder="Type a tool name — base64, jwt, rop, stego…" autocomplete="off" spellcheck="false">
+        <kbd>esc</kbd>
+      </div>
+      <ul class="palette-results" id="paletteResults"></ul>
+    </div>
+  </div>
+
+  <main class="main" id="main">
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="view active" aria-labelledby="dashboard-title">
+      <header class="view-head">
+        <p class="view-path">console / dashboard</p>
+        <h1 id="dashboard-title">Field console</h1>
+        <p class="view-sub">Every tool below runs locally in this tab — nothing you paste or upload leaves your browser. Press <kbd>⌘K</kbd> or <kbd>Ctrl K</kbd> any time to jump straight to a tool by name.</p>
+      </header>
+
+      <div class="hero-grid">
+        <div class="hero-palette">
+          <label class="hero-palette-label" for="heroSearch">Open a tool</label>
+          <div class="hero-search-row">
+            <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="heroSearch" type="text" placeholder="Search 75+ tools by name, category, or what it does…" autocomplete="off">
+          </div>
+          <ul class="hero-results" id="heroResults"></ul>
+        </div>
+
+        <div class="hero-stats" id="heroStats">
+          <div class="stat-tile">
+            <span class="stat-num" id="statTools">—</span>
+            <span class="stat-label">tools wired up</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-num" id="statCats">—</span>
+            <span class="stat-label">categories</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-num" id="statUsed">0</span>
+            <span class="stat-label">opened this session</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-split">
+        <div class="dash-col">
+          <h2 class="dash-h">Session log</h2>
+          <p class="dash-note">A running record of what you've opened this session — closes when the tab does, nothing is sent anywhere.</p>
+          <ol class="session-log" id="sessionLog">
+            <li class="session-empty">Nothing opened yet. Try the search above, or browse a category on the left.</li>
+          </ol>
+        </div>
+
+        <div class="dash-col">
+          <h2 class="dash-h">Jump to a category</h2>
+          <div class="cat-grid">
+            <a class="cat-tile" href="#crypto" data-section="crypto"><span class="cat-code">CRY</span><span class="cat-name">Cryptography</span><span class="cat-count" data-count-for="crypto">0 tools</span></a>
+            <a class="cat-tile" href="#web" data-section="web"><span class="cat-code">WEB</span><span class="cat-name">Web Security</span><span class="cat-count" data-count-for="web">0 tools</span></a>
+            <a class="cat-tile" href="#forensics" data-section="forensics"><span class="cat-code">FOR</span><span class="cat-name">Forensics</span><span class="cat-count" data-count-for="forensics">0 tools</span></a>
+            <a class="cat-tile" href="#reverse" data-section="reverse"><span class="cat-code">REV</span><span class="cat-name">Reverse Eng.</span><span class="cat-count" data-count-for="reverse">0 tools</span></a>
+            <a class="cat-tile" href="#pwn" data-section="pwn"><span class="cat-code">PWN</span><span class="cat-name">Binary Pwn</span><span class="cat-count" data-count-for="pwn">0 tools</span></a>
+            <a class="cat-tile" href="#misc" data-section="misc"><span class="cat-code">MSC</span><span class="cat-name">OSINT &amp; Misc</span><span class="cat-count" data-count-for="misc">0 tools</span></a>
+            <a class="cat-tile" href="#utils" data-section="utils"><span class="cat-code">UTL</span><span class="cat-name">Competition Utils</span><span class="cat-count" data-count-for="utils">0 tools</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cryptography -->
+    <section id="crypto" class="view" aria-labelledby="crypto-title">
+      <header class="view-head">
+        <p class="view-path">console / cryptography</p>
+        <h1 id="crypto-title">Cryptography</h1>
+        <p class="view-sub">Encoding, classical ciphers, hashing and key-based crypto for solving crypto challenges.</p>
+      </header>
+      <div class="tool-grid" id="grid-crypto"></div>
+    </section>
+
+    <!-- Web Security -->
+    <section id="web" class="view" aria-labelledby="web-title">
+      <header class="view-head">
+        <p class="view-path">console / web-security</p>
+        <h1 id="web-title">Web Security</h1>
+        <p class="view-sub">Payload references, token tooling and static analysis for web application challenges. Nothing here sends live requests — payloads and reports are generated for you to use in your own authorized testing.</p>
+      </header>
+      <div class="tool-grid" id="grid-web"></div>
+    </section>
+
+    <!-- Forensics -->
+    <section id="forensics" class="view" aria-labelledby="forensics-title">
+      <header class="view-head">
+        <p class="view-path">console / forensics</p>
+        <h1 id="forensics-title">Forensics</h1>
+        <p class="view-sub">File, image and packet analysis. Upload a file to inspect it locally — files are read with the browser's File API and never uploaded anywhere.</p>
+      </header>
+      <div class="tool-grid" id="grid-forensics"></div>
+    </section>
+
+    <!-- Reverse Engineering -->
+    <section id="reverse" class="view" aria-labelledby="reverse-title">
+      <header class="view-head">
+        <p class="view-path">console / reverse-engineering</p>
+        <h1 id="reverse-title">Reverse Engineering</h1>
+        <p class="view-sub">Header parsers, a small real x86-64 decoder, and binary comparison tools.</p>
+      </header>
+      <div class="tool-grid" id="grid-reverse"></div>
+    </section>
+
+    <!-- Binary Pwn -->
+    <section id="pwn" class="view" aria-labelledby="pwn-title">
+      <header class="view-head">
+        <p class="view-path">console / binary-pwn</p>
+        <h1 id="pwn-title">Binary Exploitation</h1>
+        <p class="view-sub">Pattern generation, offset calculation and reference material for authorized binary exploitation practice (pwnable-style CTF challenges, your own test binaries).</p>
+      </header>
+      <div class="tool-grid" id="grid-pwn"></div>
+    </section>
+
+    <!-- OSINT & Misc -->
+    <section id="misc" class="view" aria-labelledby="misc-title">
+      <header class="view-head">
+        <p class="view-path">console / osint-misc</p>
+        <h1 id="misc-title">OSINT &amp; Miscellaneous</h1>
+        <p class="view-sub">Codes, encodings and the odd corners CTFs love to hide flags in.</p>
+      </header>
+      <div class="tool-grid" id="grid-misc"></div>
+    </section>
+
+    <!-- Competition Utilities -->
+    <section id="utils" class="view" aria-labelledby="utils-title">
+      <header class="view-head">
+        <p class="view-path">console / competition-utils</p>
+        <h1 id="utils-title">Competition Utilities</h1>
+        <p class="view-sub">Housekeeping for the competition itself — tracking challenges, timing, notes and writeups. Saved locally in this browser via localStorage.</p>
+      </header>
+      <div class="tool-grid" id="grid-utils"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Tool console (modal) -->
+<div id="toolModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-pane">
+    <div class="modal-head">
+      <div>
+        <p class="modal-path" id="modalPath">cat / tool</p>
+        <h2 id="modalTitle">Tool name</h2>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close tool">
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+<footer class="footer" role="contentinfo">
+  <p>CTF Arsenal by 0x0806 — built for learning and authorized security practice. Everything runs client-side; nothing is tracked or uploaded.</p>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>
