@@ -323,6 +323,7 @@ function initPalette() {
 function showTool(id) {
   const meta = TOOL_CATALOG.find(function (t) { return t.id === id; });
   if (!meta) { toast('Unknown tool: ' + id, 'err'); return; }
+  stopAnyRunningToolTimers(); // the modal body is about to be replaced/hidden — don't leak the old tool's interval
   const modal = document.getElementById('toolModal');
   document.getElementById('modalPath').textContent = meta.category + ' / ' + meta.code;
   document.getElementById('modalTitle').textContent = meta.title;
@@ -336,8 +337,23 @@ function showTool(id) {
 }
 
 function closeModal() {
+  stopAnyRunningToolTimers();
   document.getElementById('toolModal').hidden = true;
   document.body.style.overflow = '';
+}
+
+/* Stops the competition-timer's intervals whenever the modal is closed or swapped to a
+   different tool, so they don't keep firing against a hidden/replaced DOM. Without this,
+   swTick()'s own "element gone" cleanup cleared the interval but left TIMER_SW_RUNNING
+   stuck at true, permanently disabling the Start button on reopen; and closeModal() never
+   touched either interval at all, so both kept ticking indefinitely in the background. */
+function stopAnyRunningToolTimers() {
+  if (TIMER_COUNTDOWN_IV) { clearInterval(TIMER_COUNTDOWN_IV); TIMER_COUNTDOWN_IV = null; }
+  if (TIMER_SW_RUNNING) {
+    TIMER_SW_ELAPSED += Date.now() - TIMER_SW_START;
+    TIMER_SW_RUNNING = false;
+    clearInterval(TIMER_SW_IV);
+  }
 }
 
 function initModal() {
@@ -943,7 +959,11 @@ function railFenceEncrypt(text, rails) {
   return fence.map(function (r) { return r.join(''); }).join('');
 }
 function railFenceDecrypt(text, rails) {
-  const len = text.length;
+  // Iterate by code point, matching railFenceEncrypt's `for (const ch of text)` — iterating by raw
+  // UTF-16 code unit (text.length / text[i]) instead split surrogate pairs (e.g. emoji) across two
+  // "characters" assigned to different rails, corrupting any non-BMP input on decrypt.
+  const chars = Array.from(text);
+  const len = chars.length;
   const pattern = [];
   let rail = 0, dir = 1;
   for (let i = 0; i < len; i++) {
@@ -951,12 +971,11 @@ function railFenceDecrypt(text, rails) {
     rail += dir;
     if (rail === rails - 1 || rail === 0) dir *= -1;
   }
-  const order = pattern.map(function (r, i) { return { r: r, i: i }; }).sort(function (a, b) { return a.r - b.r; });
   const out = new Array(len);
   let pos = 0;
   for (let r = 0; r < rails; r++) {
     for (let i = 0; i < len; i++) {
-      if (pattern[i] === r) out[i] = text[pos++];
+      if (pattern[i] === r) out[i] = chars[pos++];
     }
   }
   return out.join('');
@@ -1171,7 +1190,17 @@ function identifyHashTool() {
   if (/^\$6\$/.test(h)) candidates.push('SHA-512 crypt (Unix)');
   if (/^\$y\$|^\$7\$/.test(h)) candidates.push('yescrypt');
   if (/^[A-Za-z0-9+/]+=*$/.test(h) && len % 4 === 0 && !isHex) candidates.push('Base64-encoded digest (decode first)');
-  if (h.split('.').length === 3) candidates.push('JWT (use the JWT Decoder)');
+  // Counting dots alone false-positives on bcrypt/crypt hashes, which routinely contain exactly two
+  // '.' characters in their own alphabet — actually validate that part 1 is base64url JSON with a
+  // JWT-shaped header (alg/typ) before calling it a JWT.
+  (function () {
+    const parts = h.split('.');
+    if (parts.length !== 3 || parts.some(function (p) { return !p || !/^[A-Za-z0-9_-]+$/.test(p); })) return;
+    try {
+      const header = JSON.parse(b64urlDecodeStr(parts[0]));
+      if (header && typeof header === 'object' && ('alg' in header || 'typ' in header)) candidates.push('JWT (use the JWT Decoder)');
+    } catch (e) { /* not valid base64url JSON — not a JWT */ }
+  })();
   let html = '<table class="kv-table"><tr><td>Length</td><td>' + len + ' chars</td></tr><tr><td>Charset</td><td>' + (isHex ? 'hexadecimal' : 'mixed / non-hex') + '</td></tr></table>';
   html += candidates.length ? '<div class="hint"><strong>Likely:</strong> ' + candidates.join(', ') + '</div>' : '<div class="hint warn">No confident match — the length/charset don\'t fit a common algorithm cleanly.</div>';
   setOut('hashIdOutput', html);
@@ -1207,6 +1236,8 @@ function hashCrackBruteTool() {
   const algo = document.getElementById('crackAlgo').value;
   if (!target) { setOutText('crackOutput', 'Paste a hash first.'); return; }
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const maxLen = 4;
+  const spaceSize = [1, 2, 3, 4].reduce(function (sum, len) { return sum + Math.pow(chars.length, len); }, 0); // 1,727,604 for maxLen=4
   let tried = 0;
   const started = Date.now();
   function* gen(maxLen) {
@@ -1220,15 +1251,23 @@ function hashCrackBruteTool() {
       }
     }
   }
-  for (const cand of gen(4)) {
+  let timedOut = false;
+  for (const cand of gen(maxLen)) {
     tried++;
     if (hashWith(algo, cand).toLowerCase() === target) {
       setOutText('crackOutput', 'Match found — "' + cand + '"  (' + tried.toLocaleString() + ' candidates, ' + (Date.now() - started) + 'ms)');
       return;
     }
-    if (tried % 5000 === 0 && Date.now() - started > 4000) break; // keep the UI responsive
+    if (tried % 5000 === 0 && Date.now() - started > 4000) { timedOut = true; break; } // keep the UI responsive
   }
-  setOutText('crackOutput', 'No match up to 4 lowercase/digit characters (' + tried.toLocaleString() + ' candidates tried). Longer brute force needs a real cracking tool offline (hashcat/john).');
+  // A 4-second UI-responsiveness cutoff is nowhere near exhausting the full 1-4 char space (~1.7M
+  // candidates) in pure-JS hashing speed — reporting that as "no match up to 4 characters" would
+  // read as a completed exhaustive negative result when it's actually a partial, inconclusive one.
+  if (timedOut) {
+    setOutText('crackOutput', 'Stopped after 4s — only tried ' + tried.toLocaleString() + ' of ' + spaceSize.toLocaleString() + ' possible 1-4 character candidates (' + (100 * tried / spaceSize).toFixed(1) + '%). This is NOT an exhaustive result — the password may still be in the untried remainder. For a real exhaustive brute force, use hashcat/john offline.');
+  } else {
+    setOutText('crackOutput', 'No match in all ' + tried.toLocaleString() + ' lowercase/digit candidates up to ' + maxLen + ' characters — the full space was searched. Longer brute force needs a real cracking tool offline (hashcat/john).');
+  }
 }
 function rainbowLookupTool() {
   const target = document.getElementById('rainbowHash').value.trim().toLowerCase();
@@ -1260,13 +1299,23 @@ function generateOnePassword(len, upper, lower, num, sym, noAmbig) {
   return out;
 }
 function passwordStrengthScore(pw) {
+  if (!pw.length) return 0;
   let score = 0;
   if (pw.length >= 8) score += 20; if (pw.length >= 12) score += 15; if (pw.length >= 16) score += 15;
   if (/[a-z]/.test(pw)) score += 10; if (/[A-Z]/.test(pw)) score += 10;
   if (/[0-9]/.test(pw)) score += 10; if (/[^A-Za-z0-9]/.test(pw)) score += 15;
   const unique = new Set(pw).size;
   score += Math.min(10, unique);
-  return Math.min(100, score);
+  // Previously the length bonus (up to 50 of 105 raw points) was earned by length alone, so a long
+  // repeated string like "aaaaaaaaaaaaaaaa" scored "Strong" — higher than the well-known leaked
+  // password "password", which the UI simultaneously flags as a top-50 leak. Scale the whole score
+  // by how much of the password is actually unique characters, so repetition can't buy a free pass.
+  const diversity = unique / pw.length;
+  score = score * (0.4 + 0.6 * diversity);
+  // A password that's a direct hit in the common-leak list is weak by definition, however it scores
+  // on length/charset — cap it hard so the strength label never contradicts the leak warning.
+  if (COMMON_PASSWORDS.includes(pw.toLowerCase())) score = Math.min(score, 20);
+  return Math.min(100, Math.round(score));
 }
 function generatePasswordsTool() {
   const len = Math.max(4, Number(document.getElementById('passLen').value) || 16);
@@ -1509,7 +1558,8 @@ function decodeJwtTool() {
   try {
     const header = JSON.parse(b64urlDecodeStr(parts[0]));
     const payload = JSON.parse(b64urlDecodeStr(parts[1]));
-    let html = '<strong style="color:var(--teal)">Header</strong>\n' + JSON.stringify(header, null, 2) + '\n\n<strong style="color:var(--teal)">Payload</strong>\n' + JSON.stringify(payload, null, 2);
+    // header/payload come from an attacker-controlled pasted token — escape before innerHTML
+    let html = '<strong style="color:var(--teal)">Header</strong>\n' + escapeHtml(JSON.stringify(header, null, 2)) + '\n\n<strong style="color:var(--teal)">Payload</strong>\n' + escapeHtml(JSON.stringify(payload, null, 2));
     if (payload.exp) html += '\n\nExpires: ' + new Date(payload.exp * 1000).toISOString() + (payload.exp * 1000 < Date.now() ? '  (expired)' : '  (valid)');
     setOut('jwtOutput', html);
   } catch (e) { setOutText('jwtOutput', 'Could not parse: ' + e.message); }
@@ -1559,10 +1609,12 @@ function buildRequestTool() {
   let u; try { u = new URL(url); } catch (e) { u = null; }
   const path = u ? (u.pathname + u.search) : url;
   const host = u ? u.host : 'target.example';
-  let raw = method + ' ' + path + ' HTTP/1.1\nHost: ' + host + '\n';
-  headerLines.forEach(function (h) { raw += h + '\n'; });
-  if (body && method !== 'GET') raw += 'Content-Length: ' + new TextEncoder().encode(body).length + '\n';
-  raw += '\n' + (method !== 'GET' ? body : '');
+  // RFC 7230 requires CRLF line endings for a raw HTTP/1.1 request — a bare \n
+  // is not guaranteed to be accepted by a strict server or parser.
+  let raw = method + ' ' + path + ' HTTP/1.1\r\nHost: ' + host + '\r\n';
+  headerLines.forEach(function (h) { raw += h + '\r\n'; });
+  if (body && method !== 'GET') raw += 'Content-Length: ' + new TextEncoder().encode(body).length + '\r\n';
+  raw += '\r\n' + (method !== 'GET' ? body : '');
   setOutText('reqRawOutput', raw);
 
   let curl = 'curl -X ' + method + " '" + url + "'";
@@ -2168,17 +2220,40 @@ async function inspectZipTool() {
 /* Base64 blob finder                                                     */
 /* ---------------------------------------------------------------------- */
 function extractB64BlobsTool() {
-  const text = document.getElementById('b64ImgInput').value;
-  const re = /(?:[A-Za-z0-9+/]{24,}={0,2})/g;
-  const matches = text.match(re) || [];
-  const unique = Array.from(new Set(matches)).filter(function (m) { return m.length >= 24; });
-  if (!unique.length) { setOutText('b64ImgOutput', 'No base64-looking blobs (24+ chars) found.'); return; }
+  const rawText = document.getElementById('b64ImgInput').value;
+  // 1) Rejoin PEM/data-URI-style line-wrapped base64 before matching: when 2+ consecutive lines each
+  //    consist entirely of base64-alphabet characters (the last one optionally ending in padding),
+  //    that's formatting, not a boundary — collapse those runs so the regex sees one blob, not N.
+  const lines = rawText.split(/\r\n|\r|\n/);
+  const dewrapped = [];
+  let run = [];
+  function flushRun() { if (run.length >= 2) dewrapped.push(run.join('')); else dewrapped.push.apply(dewrapped, run); run = []; }
+  lines.forEach(function (line) {
+    const t = line.trim();
+    if (/^[A-Za-z0-9+/]+=?=?$/.test(t) && t.length > 0) run.push(t);
+    else { flushRun(); dewrapped.push(line); }
+  });
+  flushRun();
+  const text = dewrapped.join('\n');
+  // 2) Match both the standard alphabet and the URL-safe one (RFC 4648 §5 — JWTs, many embedded
+  //    tokens) with a low floor on the charset run so padding-heavy short blobs aren't excluded before
+  //    the real length filter runs, since '=' padding isn't part of either character class.
+  const reStd = /[A-Za-z0-9+/]{4,}={0,2}/g;
+  const reUrl = /[A-Za-z0-9_-]{4,}/g;
+  const rawMatches = (text.match(reStd) || []).concat(text.match(reUrl) || []);
+  const unique = Array.from(new Set(rawMatches)).filter(function (m) {
+    if (m.length < 24) return false; // total length including padding, not just data chars
+    if (/^[0-9a-fA-F]+$/.test(m)) return false; // indistinguishable from a hex digest/hash — not a confident base64 find
+    return true;
+  });
+  if (!unique.length) { setOutText('b64ImgOutput', 'No base64-looking blobs (24+ chars, standard or URL-safe alphabet) found.'); return; }
   let html = '';
   unique.forEach(function (blob, i) {
     let decodedPreview = '';
     let bytes = null;
     try {
-      const bin = atob(blob.replace(/=+$/, '').padEnd(Math.ceil(blob.length / 4) * 4, '='));
+      const normalized = blob.replace(/-/g, '+').replace(/_/g, '/'); // URL-safe -> standard alphabet
+      const bin = atob(normalized.replace(/=+$/, '').padEnd(Math.ceil(normalized.replace(/=+$/, '').length / 4) * 4, '='));
       bytes = new Uint8Array(bin.length);
       for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
       decodedPreview = bytesToAsciiPreview(bytes.slice(0, 60));
@@ -2254,6 +2329,13 @@ async function parseElfTool() {
   }
   const is64 = bytes[4] === 2;
   const little = bytes[5] === 1;
+  // A file that's between 20 bytes (passes the magic-number check above) and a full header's length
+  // (52 for ELF32 / 64 for ELF64) used to throw an uncaught RangeError from the unguarded DataView
+  // reads below instead of a graceful message.
+  const headerLen = is64 ? 64 : 52;
+  if (bytes.length < headerLen) { setOutText('elfOutput', 'File is too short to be a valid ' + (is64 ? 'ELF64' : 'ELF32') + ' header (' + bytes.length + ' bytes, need at least ' + headerLen + ').'); return; }
+  let html;
+  try {
   const dv = new DataView(buf);
   function u16(o) { return dv.getUint16(o, little); }
   function u32(o) { return dv.getUint32(o, little); }
@@ -2269,7 +2351,7 @@ async function parseElfTool() {
   const shnum = is64 ? u16(60) : u16(48);
   const shstrndx = is64 ? u16(62) : u16(50);
 
-  let html = '<table class="kv-table">' +
+  html = '<table class="kv-table">' +
     '<tr><td>Class</td><td>' + (is64 ? 'ELF64' : 'ELF32') + '</td></tr>' +
     '<tr><td>Endianness</td><td>' + (little ? 'little-endian' : 'big-endian') + '</td></tr>' +
     '<tr><td>Type</td><td>' + type + '</td></tr>' +
@@ -2300,6 +2382,7 @@ async function parseElfTool() {
     }
     html += '</table>';
   } catch (e) { html += '<div class="hint warn">Section name table could not be parsed (unusual layout).</div>'; }
+  } catch (e) { setOutText('elfOutput', 'Could not parse ELF header: ' + e.message + ' (file may be truncated or have an unusual layout).'); return; }
   setOut('elfOutput', html);
 }
 
@@ -2548,9 +2631,26 @@ const X86_OPCODES = [
   ['74', 'je/jz rel8', 'jump if equal/zero'], ['75', 'jne/jnz rel8', 'jump if not equal'], ['0f 05', 'syscall', 'fast system call (x86-64)'],
   ['40-4f', 'REX prefix', '64-bit operand / extended register prefix'], ['cd', 'int imm8', 'software interrupt'],
 ];
+// A search for a single hex byte ('55', '5d', 'ba'…) should hit a stored range like '50-57' when the
+// byte falls inside it — plain substring matching against the range text never does that, since the
+// typed byte usually isn't a substring of its own range's label at all.
+function opcodeRowMatchesByte(range, queryByte) {
+  const m = range.match(/^([0-9a-f]{2})-([0-9a-f]{2})$/i);
+  if (!m) return false;
+  const lo = parseInt(m[1], 16), hi = parseInt(m[2], 16);
+  return queryByte >= lo && queryByte <= hi;
+}
 function renderOpcodeTable() {
-  const q = (document.getElementById('opcodeSearch').value || '').toLowerCase();
-  const rows = X86_OPCODES.filter(function (r) { return !q || r[0].includes(q) || r[1].toLowerCase().includes(q); });
+  const qRaw = (document.getElementById('opcodeSearch').value || '').toLowerCase().trim();
+  const qNoSpace = qRaw.replace(/\s+/g, '');
+  const qByte = /^[0-9a-f]{2}$/.test(qNoSpace) ? parseInt(qNoSpace, 16) : null;
+  const rows = X86_OPCODES.filter(function (r) {
+    if (!qRaw) return true;
+    if (r[0].toLowerCase().includes(qRaw) || r[1].toLowerCase().includes(qRaw)) return true;
+    if (r[0].toLowerCase().replace(/\s+/g, '').includes(qNoSpace)) return true; // '0f 05' matches typed '0f05'
+    if (qByte !== null && opcodeRowMatchesByte(r[0], qByte)) return true; // '55' matches stored range '50-57'
+    return false;
+  });
   let html = '<table class="data-tbl"><tr><th>byte(s)</th><th>mnemonic</th><th>meaning</th></tr>';
   rows.forEach(function (r) { html += '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; });
   html += '</table>';
@@ -2670,11 +2770,17 @@ function cyclicPattern(length) {
   }
   return out.slice(0, length);
 }
+const CYCLIC_PATTERN_MAX = 26 * 26 * 10; // 3-char (upper, lower, digit) alphabet exhausts its unique sequences at 20280 bytes
 function generatePatternTool() {
   const len = Math.max(1, Math.min(200000, Number(document.getElementById('patLen').value) || 200));
   const type = document.getElementById('patType').value;
   let out;
-  if (type === 'debruijn') out = cyclicPattern(len);
+  if (type === 'debruijn') {
+    out = cyclicPattern(len);
+    // real metasploit pattern_create errors past this cap rather than silently shortening the pattern —
+    // warn via toast rather than appending text to patOutput, which stays copy-paste-safe as just the pattern
+    if (len > CYCLIC_PATTERN_MAX) toast('Requested ' + len + ' bytes, but the 3-char cyclic alphabet only has ' + CYCLIC_PATTERN_MAX + ' unique bytes — pattern capped there. Use alphabetic/numeric/custom mode for a longer unique run.', 'err');
+  }
   else if (type === 'alpha') { const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'; out = ''; for (let i = 0; i < len; i++) out += a[i % a.length]; }
   else if (type === 'numeric') { out = ''; for (let i = 0; i < len; i++) out += String(i % 10); }
   else { const chars = document.getElementById('patCustom').value || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; out = ''; for (let i = 0; i < len; i++) out += chars[i % chars.length]; }
@@ -2686,9 +2792,9 @@ function findOffsetTool() {
   if (!pattern) { setOutText('offsetOutput', 'Paste the pattern you generated first.'); return; }
   // if hex and even length, try little-endian text interpretation (common with register dumps)
   let needle = crash;
-  if (/^[0-9a-fA-F]{8}$/.test(crash) || /^(0x)?[0-9a-fA-F]{16}$/.test(crash.replace(/^0x/, ''))) {
-    const clean = crash.replace(/^0x/, '');
-    const bytes = hexToBytesArr(clean);
+  const crashNo0x = crash.replace(/^0x/i, '');
+  if (/^[0-9a-fA-F]{8}$/.test(crashNo0x) || /^[0-9a-fA-F]{16}$/.test(crashNo0x)) {
+    const bytes = hexToBytesArr(crashNo0x);
     needle = bytesToAsciiPreview(Array.from(bytes).reverse());
   }
   let idx = pattern.indexOf(needle);
@@ -2719,8 +2825,11 @@ async function ropScanTool() {
 }
 
 const SHELLCODES = {
-  execve64: { asm: 'xor rsi,rsi; push rsi; mov rdi,0x68732f6e69622f2f; shr rdi,8; push rdi; push rsp\n... (classic 23-byte execve)', hex: '6a425931f66a425a31db53545f99525653545e4857544e5f5452595f54b03b050fad' },
-  execve32: { asm: 'classic 21-byte execve("/bin/sh") for x86', hex: '31c050682f2f7368682f62696e89e3505389e189c1cd80' },
+  // Both execve entries below were re-verified in this session with objdump (x86-64 / i386, Intel syntax)
+  // against their exact listed hex — the previous bytes here didn't disassemble to a `syscall`/`int 0x80`
+  // at all and never actually called execve. These do.
+  execve64: { asm: 'xor rdx,rdx; movabs rdi,0x68732f6e69622f2f; push rdi; mov rdi,rsp; xor rsi,rsi; push rsi; push rdi; mov rsi,rsp; mov al,0x3b; syscall\n(29-byte execve("/bin/sh"), NULL argv tail + NULL envp)', hex: '4831d248bf2f2f62696e2f7368574889e74831f656574889e6b03b0f05' },
+  execve32: { asm: 'xor eax,eax; push eax; push "//sh"; push "/bin"; mov ebx,esp; push eax; push ebx; mov ecx,esp; cdq; mov al,0xb; int 0x80\n(24-byte execve("/bin/sh") for x86)', hex: '31c050682f2f7368682f62696e89e3505389e199b00bcd80' },
   exit64: { asm: 'xor rdi,rdi; mov rax,60; syscall', hex: '4831ffb83c0000000f05' }
 };
 function renderShellcodeChoice() {
@@ -2753,17 +2862,25 @@ function buildFmtWritePayload() {
 
 function composeNopsledTool() {
   const nopLen = Math.max(0, Number(document.getElementById('nopLen').value) || 0);
-  const retHex = document.getElementById('nopRet').value.replace(/^0x/, '').padStart(8, '0');
+  const retRaw = document.getElementById('nopRet').value.replace(/^0x/i, '').trim();
   const scHex = document.getElementById('nopShellcode').value.replace(/\s/g, '');
   const total = Number(document.getElementById('nopTotal').value) || 0;
   let retBytes = '';
-  if (/^[0-9a-fA-F]{8}$/.test(retHex)) {
-    const b = hexToBytesArr(retHex);
-    retBytes = bytesToHex(Array.from(b).reverse()); // little-endian
+  // Accept both a 4-byte (8 hex digit, x86) and 8-byte (16 hex digit, x86-64) return address instead of
+  // silently dropping anything that isn't exactly 8 hex digits — padStart never shortens an over-long
+  // address, so a real 64-bit pointer used to fail the old exact-8-char check and vanish with no warning.
+  if (/^[0-9a-fA-F]{1,8}$/.test(retRaw)) {
+    const b = hexToBytesArr(retRaw.padStart(8, '0'));
+    retBytes = bytesToHex(Array.from(b).reverse());
+  } else if (/^[0-9a-fA-F]{9,16}$/.test(retRaw)) {
+    const b = hexToBytesArr(retRaw.padStart(16, '0'));
+    retBytes = bytesToHex(Array.from(b).reverse());
+  } else if (retRaw) {
+    toast('Return address must be 1-16 hex digits — got "' + retRaw + '"', 'err');
   }
   let payload = '90'.repeat(nopLen) + scHex + retBytes;
   if (total && payload.length / 2 < total) payload += '41'.repeat(total - payload.length / 2);
-  setOutText('nopOutput', wrapGroups(payload, 2) + '\n\ntotal length: ' + (payload.length / 2) + ' bytes');
+  setOutText('nopOutput', wrapGroups(payload, 2) + '\n\ntotal length: ' + (payload.length / 2) + ' bytes' + (retBytes ? '' : (retRaw ? '' : '\n(no return address given)')));
 }
 
 function intOverflowTool() {
@@ -2823,6 +2940,7 @@ const MISC_INTERFACES = {
   },
   whitespace: function () {
     return ui_field('Whitespace source (paste as-is — tabs/spaces/newlines matter, visualized below as S/T/N)', ui_textarea('wsCode', 5, '')) +
+      ui_field('Input (for the read-char/read-num instructions, optional)', '<input type="text" id="wsInput" placeholder="optional stdin">') +
       ui_btns([{ label: 'Run', onclick: 'runWhitespaceTool()', primary: true }, { label: 'Load example (prints 1)', onclick: 'loadWsExample()' }]) +
       ui_field('Visualized source', ui_out('wsVizOutput')) +
       ui_field('Output', ui_out('wsOutput'));
@@ -2928,9 +3046,38 @@ function loadBfExample() {
   document.getElementById('bfCode').value = '++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.';
 }
 
-function runWhitespaceInterpreter(src) {
+/* Whitespace interpreter, matching the real instruction set (tim.whitespace.es):
+     IMP               command                 full sequence
+     [Space]           push <num>              "  "   (+ number literal)
+     [Space]           [LF][Space] dup         " \n "
+     [Space]           [LF][Tab]   swap        " \n\t"
+     [Space]           [LF][LF]    discard     " \n\n"
+     [Tab][Space]       [Space][Space] add      "\t   "
+     [Tab][Space]       [Space][Tab]   sub      "\t  \t"
+     [Tab][Space]       [Space][LF]    mul      "\t  \n"
+     [Tab][Space]       [Tab][Space]   div      "\t \t "
+     [Tab][Space]       [Tab][Tab]     mod      "\t \t\t"
+     [Tab][Tab]         [Space]  store          "\t\t "
+     [Tab][Tab]         [Tab]    retrieve       "\t\t\t"
+     [Tab][LF]          [Space][Space] out-char "\t\n  "
+     [Tab][LF]          [Space][Tab]   out-num  "\t\n \t"
+     [Tab][LF]          [Tab][Space]   in-char  "\t\n\t "
+     [Tab][LF]          [Tab][Tab]     in-num   "\t\n\t\t"
+     [LF]               [Space][Space] label    "\n  "  (+ label literal)
+     [LF]               [Space][Tab]   call     "\n \t" (+ label literal)
+     [LF]               [Space][LF]    jmp      "\n \n" (+ label literal)
+     [LF]               [Tab][Space]   jz       "\n\t " (+ label literal)
+     [LF]               [Tab][Tab]     jn       "\n\t\t"(+ label literal)
+     [LF]               [Tab][LF]      return   "\n\t\n"
+     [LF]               [LF][LF]       end      "\n\n\n" (loop breaks on the 2-char prefix, which is unambiguous)
+   The previous version had call and jz's bit patterns swapped with each other, used an invented,
+   spec-incorrect pattern for discard with swap entirely unimplemented, under-consumed the I/O
+   commands by one character (desyncing the token stream for anything after them), and had no
+   div/mod/jn/read branches at all. All of that is fixed here. */
+function runWhitespaceInterpreter(src, stdin) {
   const tokens = src.replace(/[^ \t\n]/g, '');
-  let i = 0, out = '';
+  let i = 0, out = '', inPos = 0;
+  const input = stdin || '';
   const stack = [];
   const heap = {};
   const labels = {};
@@ -2958,41 +3105,59 @@ function runWhitespaceInterpreter(src) {
     }
     scan++;
   }
+  function jumpTo(label) { return labels[label] !== undefined ? labels[label] : tokens.length; }
   let steps = 0;
   while (i < tokens.length) {
     if (++steps > 500000) { out += '\n[stopped — too many steps]'; break; }
     if (tokens.substr(i, 2) === '  ') { i += 2; stack.push(readNumber()); continue; } // push
     if (tokens.substr(i, 3) === ' \n ') { i += 3; stack.push(stack[stack.length - 1]); continue; } // dup
-    if (tokens.substr(i, 3) === ' \t\n') { i += 3; stack.pop(); continue; } // discard
+    if (tokens.substr(i, 3) === ' \n\t') { i += 3; const b = stack.pop(), a = stack.pop(); stack.push(b, a); continue; } // swap
+    if (tokens.substr(i, 3) === ' \n\n') { i += 3; stack.pop(); continue; } // discard
     if (tokens.substr(i, 2) === '\t ') { // arithmetic
-      const op = tokens.substr(i + 2, 2); i += 2;
-      if (op === '  ') { i += 2; const b = stack.pop(), a = stack.pop(); stack.push(a + b); continue; }
-      if (op === ' \t') { i += 2; const b = stack.pop(), a = stack.pop(); stack.push(a - b); continue; }
-      if (op === ' \n') { i += 2; const b = stack.pop(), a = stack.pop(); stack.push(a * b); continue; }
+      const op = tokens.substr(i + 2, 2);
+      if (op === '  ') { i += 4; const b = stack.pop(), a = stack.pop(); stack.push(a + b); continue; }
+      if (op === ' \t') { i += 4; const b = stack.pop(), a = stack.pop(); stack.push(a - b); continue; }
+      if (op === ' \n') { i += 4; const b = stack.pop(), a = stack.pop(); stack.push(a * b); continue; }
+      if (op === '\t ') { i += 4; const b = stack.pop(), a = stack.pop(); stack.push(b === 0 ? 0 : Math.trunc(a / b)); continue; } // div
+      if (op === '\t\t') { i += 4; const b = stack.pop(), a = stack.pop(); stack.push(b === 0 ? 0 : ((a % b) + b) % b); continue; } // mod
     }
     if (tokens.substr(i, 3) === '\t\t ') { i += 3; heap[stack[stack.length - 2]] = stack[stack.length - 1]; stack.length -= 2; continue; } // store
     if (tokens.substr(i, 3) === '\t\t\t') { i += 3; const a = stack.pop(); stack.push(heap[a] || 0); continue; } // retrieve
-    if (tokens.substr(i, 3) === '\t\n ') { i += 3; out += String.fromCharCode(stack.pop()); continue; } // print char
-    if (tokens.substr(i, 3) === '\t\n\t') { i += 3; out += String(stack.pop()); continue; } // print num
-    if (tokens.substr(i, 2) === '\n\n') { break; } // end program
+    if (tokens.substr(i, 2) === '\t\n') { // I/O — full 4-char instructions, not 3
+      const cmd = tokens.substr(i + 2, 2);
+      if (cmd === '  ') { i += 4; out += String.fromCharCode(stack.pop()); continue; } // out-char
+      if (cmd === ' \t') { i += 4; out += String(stack.pop()); continue; } // out-num
+      if (cmd === '\t ') { i += 4; const addr = stack.pop(); heap[addr] = inPos < input.length ? input.charCodeAt(inPos++) : 0; continue; } // in-char
+      if (cmd === '\t\t') { // in-num
+        i += 4; const addr = stack.pop();
+        const m = input.slice(inPos).match(/^-?\d+/);
+        if (m) { inPos += m[0].length; heap[addr] = parseInt(m[0], 10); } else heap[addr] = 0;
+        continue;
+      }
+    }
+    if (tokens.substr(i, 2) === '\n\n') { break; } // end program — 3rd char is always the matching LF, loop ends anyway
     if (tokens.substr(i, 3) === '\n  ') { i += 3; readLabel(); continue; } // label def (already scanned)
-    if (tokens.substr(i, 3) === '\n\t ') { i += 3; const l = readLabel(); callStack.push(i); i = labels[l] !== undefined ? labels[l] : tokens.length; continue; } // call
+    if (tokens.substr(i, 3) === '\n \t') { i += 3; const l = readLabel(); callStack.push(i); i = jumpTo(l); continue; } // call
     if (tokens.substr(i, 3) === '\n\t\n') { i = callStack.pop(); continue; } // return
-    if (tokens.substr(i, 3) === '\n \n') { i += 3; const l = readLabel(); i = labels[l] !== undefined ? labels[l] : tokens.length; continue; } // jmp
-    if (tokens.substr(i, 3) === '\n \t') { i += 3; const l = readLabel(); if (stack.pop() === 0) i = labels[l] !== undefined ? labels[l] : tokens.length; continue; } // jz
+    if (tokens.substr(i, 3) === '\n \n') { i += 3; const l = readLabel(); i = jumpTo(l); continue; } // jmp
+    if (tokens.substr(i, 3) === '\n\t ') { i += 3; const l = readLabel(); const v = stack.pop(); if (v === 0) i = jumpTo(l); continue; } // jz
+    if (tokens.substr(i, 3) === '\n\t\t') { i += 3; const l = readLabel(); const v = stack.pop(); if (v < 0) i = jumpTo(l); continue; } // jn
     i++; // unknown sequence, skip a token defensively
   }
   return out;
 }
 function runWhitespaceTool() {
   const code = document.getElementById('wsCode').value;
-  try { setOutText('wsOutput', runWhitespaceInterpreter(code) || '(no output)'); }
+  const stdinEl = document.getElementById('wsInput');
+  try { setOutText('wsOutput', runWhitespaceInterpreter(code, stdinEl ? stdinEl.value : '') || '(no output)'); }
   catch (e) { setOutText('wsOutput', 'Error: ' + e.message); }
   setOutText('wsVizOutput', code.replace(/ /g, 'S').replace(/\t/g, 'T').replace(/\n/g, 'N\n'));
 }
 function loadWsExample() {
-  // push 1 (S S S T L), print as number (T L T), end program (L L L)
-  document.getElementById('wsCode').value = '   \t\n\t\n\t\n\n\n';
+  // push 1 (S S S T L), print as number (T L S T), end program (L L L) — corrected to the real
+  // 4-character I/O instruction length; the previous 3-character version only "worked" because the
+  // interpreter used to under-consume I/O instructions by one character too (now fixed).
+  document.getElementById('wsCode').value = '   \t\n\t\n \t\n\n\n';
 }
 
 /* --- Zero-width character steganography --- */
@@ -3076,14 +3241,19 @@ function magicDecodeTool() {
 function inspectUnicodeTool() {
   const text = document.getElementById('uniInput').value;
   const invisible = [0x200b, 0x200c, 0x200d, 0x2060, 0xfeff];
+  // bidi-control characters are a classic disguise/spoofing technique (e.g. renaming "evil.exe"
+  // so it DISPLAYS as "evilexe.txt") and deserve their own flag, not a generic non-ASCII count.
+  const bidiControls = [0x202a, 0x202b, 0x202c, 0x202d, 0x202e, 0x2066, 0x2067, 0x2068, 0x2069];
   const findings = [];
-  let invisCount = 0, nonAsciiCount = 0;
+  let invisCount = 0, bidiCount = 0, nonAsciiCount = 0;
   Array.from(text).forEach(function (ch, idx) {
     const cp = ch.codePointAt(0);
     if (invisible.includes(cp)) invisCount++;
+    else if (bidiControls.includes(cp)) bidiCount++;
     else if (cp > 127) nonAsciiCount++;
   });
   if (invisCount) findings.push(['bad', invisCount + ' invisible zero-width character(s) found — try the Zero-Width Character tool to reveal them.']);
+  if (bidiCount) findings.push(['bad', bidiCount + ' bidirectional-override character(s) found (e.g. U+202E RIGHT-TO-LEFT OVERRIDE) — a classic trick for disguising a filename or string\'s true content/extension.']);
   if (nonAsciiCount) findings.push(['warn', nonAsciiCount + ' non-ASCII character(s) — check for homoglyphs (е vs e, а vs a, etc.) used to disguise text.']);
   const homoglyphPairs = [['а', 'a'], ['е', 'e'], ['о', 'o'], ['р', 'p'], ['с', 'c'], ['х', 'x'], ['і', 'i']];
   homoglyphPairs.forEach(function (pair) { if (text.includes(pair[0])) findings.push(['warn', 'Contains Cyrillic look-alike "' + pair[0] + '" (looks like Latin "' + pair[1] + '")']); });
@@ -3259,7 +3429,7 @@ function fmtStopwatch(ms) {
 }
 function swTick() {
   const el = document.getElementById('timerStopwatchOutput');
-  if (!el) { clearInterval(TIMER_SW_IV); return; }
+  if (!el) { clearInterval(TIMER_SW_IV); TIMER_SW_RUNNING = false; return; } // don't leave RUNNING stuck true with no interval behind it
   el.textContent = fmtStopwatch(TIMER_SW_ELAPSED + (Date.now() - TIMER_SW_START));
 }
 function swStart() {
