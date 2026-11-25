@@ -25,7 +25,7 @@ Nothing here makes network requests on your behalf. Web-security tools generate 
 | Cryptography (CRY) | 24 | Base64/Base32/Base58/Base85, classical ciphers + a real Vigenère cracker (chi-squared key recovery), hash generation/identification/cracking, a from-scratch RSA toy tool |
 | Web Security (WEB) | 12 | SQLi/XSS/SSTI/command-injection payload sets, a full JWT decoder + HS256 secret cracker, security header analyzer, CSRF PoC generator, JS/CSS/HTML beautifier |
 | Forensics (FOR) | 10 | Real PNG/JPEG chunk parsing, a byte-accurate hex viewer, ASCII/UTF-16 string extraction, pixel-level LSB steganography (extract + visualize), a real libpcap parser, file carving by signature |
-| Reverse Engineering (REV) | 7 | A genuine ELF header + section table parser, a small but real x86-64 instruction decoder, binary diffing, an entropy-per-chunk packer scanner |
+| Reverse Engineering (REV) | 7 | A genuine ELF header + section table parser, a real x86-64 instruction decoder (REX/ModRM/SIB, RIP-relative addressing, jcc/setcc/cmov/movzx/movsx, syscall, endbr64), binary diffing, an entropy-per-chunk packer scanner |
 | Binary Pwn (PWN) | 7 | A metasploit-compatible De Bruijn-style cyclic pattern generator + offset finder, a ret-gadget byte scanner, format-string payload builder, integer overflow calculator |
 | OSINT & Misc (MSC) | 10 | QR/barcode generate & decode, Brainfuck and Whitespace interpreters, zero-width-character steganography, a layered "magic" auto-decoder, Unicode homoglyph inspector |
 | Competition Utils (UTL) | 6 | Challenge tracker, scratchpad notes, countdown timer + stopwatch, writeup template generator, targeted wordlist generator, text diff |

@@ -141,7 +141,7 @@ function activateSection(name) {
 }
 
 function closeRailOnMobile() {
-  if (window.innerWidth <= 920) document.getElementById('rail').classList.remove('open');
+  if (window.innerWidth <= 920) { document.getElementById('rail').classList.remove('open'); document.getElementById('railScrim').classList.remove('show'); }
 }
 
 function initNav() {
@@ -155,9 +155,12 @@ function initNav() {
   const initial = location.hash.replace('#', '') || 'dashboard';
   if (document.getElementById(initial)) activateSection(initial);
 
-  document.getElementById('railToggle').addEventListener('click', function () {
-    document.getElementById('rail').classList.toggle('open');
-  });
+  const rail = document.getElementById('rail');
+  const setRail = function (open) { rail.classList.toggle('open', open); document.getElementById('railScrim').classList.toggle('show', open); };
+  document.getElementById('mobileMenu').addEventListener('click', function () { setRail(true); });
+  document.getElementById('railScrim').addEventListener('click', function () { setRail(false); });
+  document.getElementById('railToggle').addEventListener('click', function () { setRail(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setRail(false); });
 }
 
 function initThemeToggle() {
@@ -190,7 +193,7 @@ function renderSessionLog() {
   const el = document.getElementById('sessionLog');
   if (!el) return;
   if (!SESSION_LOG.length) {
-    el.innerHTML = '<li class="session-empty">Nothing opened yet. Try the search above, or browse a category on the left.</li>';
+    el.innerHTML = '<li class="session-empty">Nothing opened yet. Try the search above, or pick a category.</li>';
     return;
   }
   el.innerHTML = SESSION_LOG.slice(0, 20).map(function (entry) {
@@ -2185,7 +2188,7 @@ function extractB64BlobsTool() {
 /* REVERSE ENGINEERING — catalog                                          */
 /* ---------------------------------------------------------------------- */
 registerTool('reverse', 'REV', 'REV-01', 'elf-parser', 'ELF Header Parser', 'Parses the real ELF header, program headers and section table of a Linux binary.');
-registerTool('reverse', 'REV', 'REV-02', 'disassembler', 'Mini x86-64 Disassembler', 'Decodes a curated, real subset of common x86-64 instructions from raw bytes.');
+registerTool('reverse', 'REV', 'REV-02', 'disassembler', 'x86-64 Disassembler', 'Intel-syntax x86-64 decoder: REX, ModRM/SIB, RIP-relative, jcc/setcc/cmov and more.');
 registerTool('reverse', 'REV', 'REV-03', 'binary-diff', 'Binary Diff', 'Byte-by-byte comparison of two files, highlighting every differing offset.');
 registerTool('reverse', 'REV', 'REV-04', 'endian-converter', 'Endianness Converter', 'Flips byte order for 16/32/64-bit values, hex or decimal.');
 registerTool('reverse', 'REV', 'REV-05', 'syscall-reference', 'x86-64 Linux Syscall Table', 'Searchable reference of Linux x86-64 syscall numbers and signatures.');
@@ -2200,9 +2203,10 @@ const REVERSE_INTERFACES = {
   },
   disassembler: function () {
     return ui_field('Bytes (hex, e.g. 55 48 89 e5 90 c3)', ui_textarea('disasmInput', 4, '55 48 89 e5 48 83 ec 10 b8 00 00 00 00 90 c9 c3')) +
+      ui_field('Base address (hex, optional)', '<input type="text" id="disasmBase" value="0" placeholder="401000">') +
       ui_btns([{ label: 'Disassemble', onclick: 'disassembleTool()', primary: true }]) +
       ui_field('Instructions', ui_out('disasmOutput')) +
-      '<div class="hint">Covers a real, curated subset: push/pop, mov reg↔reg/imm, common ALU ops, lea, nop, leave, ret, call/jmp rel32, int3, syscall. Anything outside that set is shown as a raw byte with "unrecognized" rather than guessed.</div>';
+      '<div class="hint">Intel syntax. Handles legacy/REX prefixes, ModRM/SIB addressing (incl. RIP-relative), the integer ALU/mov/shift/mul/div/jcc/setcc/cmov/movzx/movsx set, call/jmp/ret, syscall and endbr64. SSE/AVX/x87 are shown as (bad) rather than guessed.</div>';
   },
   'binary-diff': function () {
     return '<div class="row2">' + ui_field('File A', '<input type="file" id="diffA">') + ui_field('File B', '<input type="file" id="diffB">') + '</div>' +
@@ -2291,93 +2295,179 @@ async function parseElfTool() {
   setOut('elfOutput', html);
 }
 
-/* --- Mini x86-64 disassembler: real decode of a curated opcode subset --- */
-const REG64 = ['rax', 'rcx', 'rdx', 'rbx', 'rsp', 'rbp', 'rsi', 'rdi'];
-const REG32 = ['eax', 'ecx', 'edx', 'ebx', 'esp', 'ebp', 'esi', 'edi'];
+/* --- x86-64 disassembler: prefixes, REX, ModRM/SIB/disp, common 1- and 2-byte opcodes --- */
+const X86 = (function () {
+  const R64 = ['rax','rcx','rdx','rbx','rsp','rbp','rsi','rdi','r8','r9','r10','r11','r12','r13','r14','r15'];
+  const R32 = ['eax','ecx','edx','ebx','esp','ebp','esi','edi','r8d','r9d','r10d','r11d','r12d','r13d','r14d','r15d'];
+  const R16 = ['ax','cx','dx','bx','sp','bp','si','di','r8w','r9w','r10w','r11w','r12w','r13w','r14w','r15w'];
+  const R8 = ['al','cl','dl','bl','spl','bpl','sil','dil','r8b','r9b','r10b','r11b','r12b','r13b','r14b','r15b'];
+  const R8L = ['al','cl','dl','bl','ah','ch','dh','bh'];
+  const ALU = ['add','or','adc','sbb','and','sub','xor','cmp'];
+  const SHF = ['rol','ror','rcl','rcr','shl','shr','shl','sar'];
+  const CC = ['o','no','b','ae','e','ne','be','a','s','ns','p','np','l','ge','le','g'];
+  const hx = function (n) { return n < 0 ? '-0x' + (-n).toString(16) : '0x' + n.toString(16); };
+
+  function decode(b, pos, addr) {
+    const start = pos;
+    let rex = 0, opsz = false, rep = 0, seg = '', adsz = false, lock = false;
+    for (;;) {
+      const p = b[pos];
+      if (p === 0x66) opsz = true; else if (p === 0xf3 || p === 0xf2) rep = p; else if (p === 0x64) seg = 'fs:'; else if (p === 0x65) seg = 'gs:';
+      else if (p === 0x67) adsz = true; else if (p === 0xf0) lock = true; else if (p === 0x2e || p === 0x3e || p === 0x26 || p === 0x36) { /* ignored segment overrides */ } else break;
+      pos++;
+      if (pos - start > 4) return null;
+    }
+    if (b[pos] >= 0x40 && b[pos] <= 0x4f) rex = b[pos++];
+    const W = !!(rex & 8), R = (rex & 4) ? 8 : 0, X = (rex & 2) ? 8 : 0, B = (rex & 1) ? 8 : 0;
+    const need = function (n) { return pos + n <= b.length; };
+    const rd8 = function () { const v = b[pos]; pos++; return v << 24 >> 24; };
+    const rd16 = function () { const v = b[pos] | b[pos + 1] << 8; pos += 2; return v; };
+    const rd32 = function () { const v = (b[pos] | b[pos + 1] << 8 | b[pos + 2] << 16 | b[pos + 3] << 24) | 0; pos += 4; return v; };
+    const rd64 = function () { let v = 0n; for (let i = 7; i >= 0; i--) v = (v << 8n) | BigInt(b[pos + i]); pos += 8; return v; };
+    const regN = function (n, size) { return size === 64 ? R64[n] : size === 32 ? R32[n] : size === 16 ? R16[n] : (rex ? R8[n] : (n < 8 ? R8L[n] : R8[n])); };
+    const osz = W ? 64 : (opsz ? 16 : 32);
+    const ptr = { 8: 'byte', 16: 'word', 32: 'dword', 64: 'qword' };
+    let modrm = null;
+    function getModrm(size) { // returns {reg, rmStr, isReg, rmN}
+      if (!need(1)) throw 0;
+      const m = b[pos++], mod = m >> 6, reg = ((m >> 3) & 7) | R;
+      let rm = m & 7;
+      if (mod === 3) return { reg: reg, isReg: true, rmN: rm | B, str: regN(rm | B, size) };
+      let base = null, index = null, scale = 1, disp = 0, rip = false;
+      if (rm === 4) {
+        if (!need(1)) throw 0;
+        const sib = b[pos++]; scale = 1 << (sib >> 6);
+        const idx = ((sib >> 3) & 7) | X; const bs = sib & 7;
+        if (idx !== 4) index = idx;
+        if (bs === 5 && mod === 0) { if (!need(4)) throw 0; disp = rd32(); } else base = bs | B;
+      } else if (rm === 5 && mod === 0) { if (!need(4)) throw 0; disp = rd32(); rip = true; }
+      else base = rm | B;
+      if (mod === 1) { if (!need(1)) throw 0; disp = rd8(); } else if (mod === 2) { if (!need(4)) throw 0; disp = rd32(); }
+      const ar = adsz ? R32 : R64;
+      let s = '';
+      if (rip) s = 'rip' + (disp < 0 ? '-' : '+') + hx(Math.abs(disp));
+      else {
+        const parts = [];
+        if (base !== null) parts.push(ar[base]);
+        if (index !== null) parts.push(ar[index] + (scale > 1 ? '*' + scale : ''));
+        s = parts.join('+');
+        if (disp || !parts.length) s += (parts.length ? (disp < 0 ? '-' : '+') + hx(Math.abs(disp)) : hx(disp));
+      }
+      return { reg: reg, isReg: false, rmN: 0, str: (size ? ptr[size] + ' ptr ' : '') + seg + '[' + s + ']', ripDisp: rip ? disp : null };
+    }
+    function imm(size) { // immediate for operand size (imm32 sign-extended for 64)
+      if (size === 8) { if (!need(1)) throw 0; return rd8(); }
+      if (size === 16) { if (!need(2)) throw 0; return rd16(); }
+      if (!need(4)) throw 0; return rd32();
+    }
+    const immS = function (v, size) { return v < 0 ? hx(size === 64 ? v : (v >>> 0) - 0x100000000 * 0 ) : hx(v); };
+    let out = null;
+    try {
+      if (!need(1)) return null;
+      const op = b[pos++];
+      const fin = function (m, o) { out = { m: m, o: o || '' }; };
+      if (op < 0x40 && (op & 7) < 6 && op !== 0x0f) { // ALU block
+        const name = ALU[op >> 3], k = op & 7;
+        if (k < 4) {
+          const sz = (k & 1) ? osz : 8; const m = getModrm(sz);
+          const a = m.str, c = regN(m.reg, sz);
+          fin(name, (k & 2) ? c + ', ' + a : a + ', ' + c);
+        } else {
+          const sz = (k === 4) ? 8 : osz; const v = imm(sz === 64 ? 32 : sz);
+          fin(name, regN(0, sz) + ', ' + hx(v));
+        }
+      }
+      else if (op >= 0x50 && op <= 0x57) fin('push', R64[(op - 0x50) | B]);
+      else if (op >= 0x58 && op <= 0x5f) fin('pop', R64[(op - 0x58) | B]);
+      else if (op === 0x63) { const m = getModrm(32); fin('movsxd', regN(m.reg, osz) + ', ' + m.str); }
+      else if (op === 0x68) fin('push', hx(imm(32)));
+      else if (op === 0x6a) fin('push', hx(imm(8)));
+      else if (op === 0x69 || op === 0x6b) { const m = getModrm(osz); const v = imm(op === 0x6b ? 8 : (osz === 16 ? 16 : 32)); fin('imul', regN(m.reg, osz) + ', ' + m.str + ', ' + hx(v)); }
+      else if (op >= 0x70 && op <= 0x7f) { const r = imm(8); fin('j' + CC[op & 15], hx(addr + (pos - start) + r)); }
+      else if (op >= 0x80 && op <= 0x83) {
+        const sz = op === 0x80 ? 8 : osz; const m = getModrm(sz); const v = imm(op === 0x81 ? (sz === 16 ? 16 : 32) : 8);
+        fin(ALU[m.reg & 7], m.str + ', ' + hx(v));
+      }
+      else if (op === 0x84 || op === 0x85) { const sz = op === 0x84 ? 8 : osz; const m = getModrm(sz); fin('test', m.str + ', ' + regN(m.reg, sz)); }
+      else if (op === 0x86 || op === 0x87) { const sz = op === 0x86 ? 8 : osz; const m = getModrm(sz); fin('xchg', m.str + ', ' + regN(m.reg, sz)); }
+      else if (op >= 0x88 && op <= 0x8b) { const sz = (op & 1) ? osz : 8; const m = getModrm(sz); const c = regN(m.reg, sz); fin('mov', (op & 2) ? c + ', ' + m.str : m.str + ', ' + c); }
+      else if (op === 0x8d) { const m = getModrm(0); fin('lea', regN(m.reg, osz) + ', ' + m.str); }
+      else if (op === 0x8f) { const m = getModrm(64); fin('pop', m.str); }
+      else if (op === 0x90) fin(rep === 0xf3 ? 'pause' : 'nop');
+      else if (op > 0x90 && op <= 0x97) fin('xchg', regN((op - 0x90) | B, osz) + ', ' + regN(0, osz));
+      else if (op === 0x98) fin(W ? 'cdqe' : opsz ? 'cbw' : 'cwde');
+      else if (op === 0x99) fin(W ? 'cqo' : opsz ? 'cwd' : 'cdq');
+      else if (op === 0xa4 || op === 0xa5) fin((rep ? 'rep ' : '') + 'movs' + (op === 0xa4 ? 'b' : (W ? 'q' : 'd')));
+      else if (op === 0xaa || op === 0xab) fin((rep ? 'rep ' : '') + 'stos' + (op === 0xaa ? 'b' : (W ? 'q' : 'd')));
+      else if (op === 0xa8) fin('test', 'al, ' + hx(imm(8)));
+      else if (op === 0xa9) fin('test', regN(0, osz) + ', ' + hx(imm(osz === 16 ? 16 : 32)));
+      else if (op >= 0xb0 && op <= 0xb7) fin('mov', regN((op - 0xb0) | B, 8) + ', ' + hx(imm(8) & 0xff));
+      else if (op >= 0xb8 && op <= 0xbf) {
+        if (W) { if (!need(8)) throw 0; fin('movabs', R64[(op - 0xb8) | B] + ', 0x' + rd64().toString(16)); }
+        else { const v = imm(osz === 16 ? 16 : 32); fin('mov', regN((op - 0xb8) | B, osz) + ', 0x' + (osz === 16 ? v & 0xffff : v >>> 0).toString(16)); }
+      }
+      else if (op === 0xc0 || op === 0xc1 || (op >= 0xd0 && op <= 0xd3)) {
+        const sz = (op & 1) ? osz : 8; const m = getModrm(sz);
+        const cnt = op <= 0xc1 ? hx(imm(8) & 0xff) : (op <= 0xd1 ? '1' : 'cl');
+        fin(SHF[m.reg & 7], m.str + ', ' + cnt);
+      }
+      else if (op === 0xc2) fin('ret', hx(imm(16)));
+      else if (op === 0xc3) fin(rep === 0xf3 ? 'repz ret' : 'ret');
+      else if (op === 0xc6 || op === 0xc7) { const sz = op === 0xc6 ? 8 : osz; const m = getModrm(sz); const v = imm(sz === 64 ? 32 : sz); fin('mov', m.str + ', ' + hx(v)); }
+      else if (op === 0xc9) fin('leave');
+      else if (op === 0xcc) fin('int3');
+      else if (op === 0xcd) fin('int', hx(imm(8) & 0xff));
+      else if (op === 0xe8) { const r = imm(32); fin('call', hx(addr + (pos - start) + r)); }
+      else if (op === 0xe9) { const r = imm(32); fin('jmp', hx(addr + (pos - start) + r)); }
+      else if (op === 0xeb) { const r = imm(8); fin('jmp', hx(addr + (pos - start) + r)); }
+      else if (op === 0xf4) fin('hlt');
+      else if (op === 0xf6 || op === 0xf7) {
+        const sz = op === 0xf6 ? 8 : osz; const m = getModrm(sz); const f = m.reg & 7;
+        if (f < 2) fin('test', m.str + ', ' + hx(imm(sz === 8 ? 8 : (sz === 16 ? 16 : 32))));
+        else fin(['', '', 'not', 'neg', 'mul', 'imul', 'div', 'idiv'][f], m.str);
+      }
+      else if (op === 0xfe || op === 0xff) {
+        const sz = op === 0xfe ? 8 : osz; const pk = b[pos]; const f = (pk >> 3) & 7;
+        const m = getModrm((op === 0xff && (f === 2 || f === 4 || f === 6)) ? 64 : sz);
+        if (f === 0) fin('inc', m.str); else if (f === 1) fin('dec', m.str);
+        else if (op === 0xff && f === 2) fin('call', m.str); else if (op === 0xff && f === 4) fin('jmp', m.str);
+        else if (op === 0xff && f === 6) fin('push', m.str); else out = null;
+      }
+      else if (op === 0x0f) {
+        if (!need(1)) throw 0;
+        const o2 = b[pos++];
+        if (o2 === 0x05) fin('syscall');
+        else if (o2 === 0x0b) fin('ud2');
+        else if (o2 === 0xa2) fin('cpuid');
+        else if (o2 === 0x1e && rep === 0xf3 && b[pos] === 0xfa) { pos++; fin('endbr64'); }
+        else if (o2 === 0x1f) { const m = getModrm(osz); fin('nop', m.str); }
+        else if (o2 >= 0x80 && o2 <= 0x8f) { const r = imm(32); fin('j' + CC[o2 & 15], hx(addr + (pos - start) + r)); }
+        else if (o2 >= 0x90 && o2 <= 0x9f) { const m = getModrm(8); fin('set' + CC[o2 & 15], m.str); }
+        else if (o2 >= 0x40 && o2 <= 0x4f) { const m = getModrm(osz); fin('cmov' + CC[o2 & 15], regN(m.reg, osz) + ', ' + m.str); }
+        else if (o2 === 0xaf) { const m = getModrm(osz); fin('imul', regN(m.reg, osz) + ', ' + m.str); }
+        else if (o2 === 0xb6 || o2 === 0xb7 || o2 === 0xbe || o2 === 0xbf) { const ssz = (o2 & 1) ? 16 : 8; const m = getModrm(ssz); fin((o2 < 0xb8 ? 'movzx' : 'movsx'), regN(m.reg, osz) + ', ' + m.str); }
+      }
+      if (!out) return null;
+      const len = pos - start;
+      return { len: len, text: (lock ? 'lock ' : '') + (out.o ? out.m + ' ' + out.o : out.m), m: out.m, bytes: b.slice(start, pos) };
+    } catch (e) { return null; }
+  }
+  return { decode: decode };
+})();
+
 function disassembleTool() {
-  const hex = document.getElementById('disasmInput').value;
-  const bytes = hexToBytesArr(hex);
+  const bytes = hexToBytesArr(document.getElementById('disasmInput').value);
+  const base = parseInt(document.getElementById('disasmBase').value.replace(/^0x/i, '') || '0', 16) || 0;
   const lines = [];
   let i = 0;
+  const hex = function (a) { return Array.from(a).map(function (x) { return x.toString(16).padStart(2, '0'); }).join(' '); };
   while (i < bytes.length) {
-    const start = i;
-    let rexW = false;
-    if (bytes[i] >= 0x40 && bytes[i] <= 0x4f) { rexW = !!(bytes[i] & 0x08); i++; }
-    if (i >= bytes.length) { lines.push(fmt(start, [bytes[start]], 'db', '0x' + bytes[start].toString(16))); break; }
-    const op = bytes[i];
-    const regs = rexW ? REG64 : REG32;
-    if (op === 0x90) { lines.push(fmt(start, bytes.slice(start, i + 1), 'nop', '')); i++; }
-    else if (op === 0xc3) { lines.push(fmt(start, bytes.slice(start, i + 1), 'ret', '')); i++; }
-    else if (op === 0xc9) { lines.push(fmt(start, bytes.slice(start, i + 1), 'leave', '')); i++; }
-    else if (op === 0xcc) { lines.push(fmt(start, bytes.slice(start, i + 1), 'int3', '')); i++; }
-    else if (op === 0xf4) { lines.push(fmt(start, bytes.slice(start, i + 1), 'hlt', '')); i++; }
-    else if (op >= 0x50 && op <= 0x57) { lines.push(fmt(start, bytes.slice(start, i + 1), 'push', regs[op - 0x50])); i++; }
-    else if (op >= 0x58 && op <= 0x5f) { lines.push(fmt(start, bytes.slice(start, i + 1), 'pop', regs[op - 0x58])); i++; }
-    else if (op === 0x0f && bytes[i + 1] === 0x05) { lines.push(fmt(start, bytes.slice(start, i + 2), 'syscall', '')); i += 2; }
-    else if (op === 0x89 && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1];
-      const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'mov', regs[rm] + ', ' + regs[reg]));
-      i += 2;
-    }
-    else if (op === 0x8b && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1];
-      const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'mov', regs[reg] + ', ' + regs[rm]));
-      i += 2;
-    }
-    else if (op === 0xb8 && i + 4 < bytes.length) {
-      const imm = (bytes[i + 4] << 24 | bytes[i + 3] << 16 | bytes[i + 2] << 8 | bytes[i + 1]) >>> 0;
-      lines.push(fmt(start, bytes.slice(start, i + 5), 'mov', regs[0] + ', 0x' + imm.toString(16)));
-      i += 5;
-    }
-    else if (op === 0x01 && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1]; const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'add', regs[rm] + ', ' + regs[reg])); i += 2;
-    }
-    else if (op === 0x29 && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1]; const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'sub', regs[rm] + ', ' + regs[reg])); i += 2;
-    }
-    else if (op === 0x31 && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1]; const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'xor', regs[rm] + ', ' + regs[reg])); i += 2;
-    }
-    else if (op === 0x83 && i + 2 < bytes.length) {
-      const modrm = bytes[i + 1]; const regOps = { 0: 'add', 5: 'sub', 4: 'and', 1: 'or', 6: 'xor', 7: 'cmp' };
-      const regField = (modrm >> 3) & 7, rm = modrm & 7;
-      const imm = bytes[i + 2];
-      lines.push(fmt(start, bytes.slice(start, i + 3), regOps[regField] || 'alu', regs[rm] + ', 0x' + imm.toString(16)));
-      i += 3;
-    }
-    else if (op === 0x8d && i + 1 < bytes.length) {
-      const modrm = bytes[i + 1]; const reg = (modrm >> 3) & 7, rm = modrm & 7;
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'lea', regs[reg] + ', [' + regs[rm] + ']')); i += 2;
-    }
-    else if (op === 0xe8 && i + 4 < bytes.length) {
-      const rel = (bytes[i + 4] << 24 | bytes[i + 3] << 16 | bytes[i + 2] << 8 | bytes[i + 1]) | 0;
-      lines.push(fmt(start, bytes.slice(start, i + 5), 'call', (rel >= 0 ? '+0x' + rel.toString(16) : '-0x' + (-rel).toString(16)) + ' (rel32)'));
-      i += 5;
-    }
-    else if (op === 0xe9 && i + 4 < bytes.length) {
-      const rel = (bytes[i + 4] << 24 | bytes[i + 3] << 16 | bytes[i + 2] << 8 | bytes[i + 1]) | 0;
-      lines.push(fmt(start, bytes.slice(start, i + 5), 'jmp', (rel >= 0 ? '+0x' + rel.toString(16) : '-0x' + (-rel).toString(16)) + ' (rel32)'));
-      i += 5;
-    }
-    else if (op === 0xeb && i + 1 < bytes.length) {
-      const rel = (bytes[i + 1] << 24 >> 24);
-      lines.push(fmt(start, bytes.slice(start, i + 2), 'jmp', (rel >= 0 ? '+0x' + rel.toString(16) : '-0x' + (-rel).toString(16)) + ' (rel8)'));
-      i += 2;
-    }
-    else {
-      lines.push(fmt(start, [bytes[i]], 'db', '0x' + bytes[i].toString(16) + '  ; unrecognized opcode'));
-      i++;
-    }
+    const d = X86.decode(bytes, i, base + i);
+    const addr = (base + i).toString(16).padStart(8, '0');
+    if (d) { lines.push(addr + ':  ' + hex(d.bytes).padEnd(30) + d.text); i += d.len; }
+    else { lines.push(addr + ':  ' + hex([bytes[i]]).padEnd(30) + '(bad)  ; not in this decoder\'s opcode set (SSE/AVX/x87/system)'); i++; }
   }
-  function fmt(off, byteArr, mnem, operands) {
-    return off.toString(16).padStart(4, '0') + ':  ' + Array.from(byteArr).map(function (b) { return b.toString(16).padStart(2, '0'); }).join(' ').padEnd(20, ' ') + mnem + (operands ? '  ' + operands : '');
-  }
-  setOutText('disasmOutput', lines.join('\n'));
+  setOutText('disasmOutput', lines.length ? lines.join('\n') : 'Enter hex bytes to disassemble.');
 }
 
 async function binaryDiffTool() {
@@ -2788,7 +2878,7 @@ function generateBarcodeTool() {
   const text = document.getElementById('barcodeInput').value;
   const fmt = document.getElementById('barcodeFormat').value;
   if (!text) { toast('Enter a value to encode', 'err'); return; }
-  try { JsBarcode('#barcodeSvg', text, { format: fmt, displayValue: true, background: 'transparent', lineColor: '#e7e9ec' }); }
+  try { JsBarcode('#barcodeSvg', text, { format: fmt, displayValue: true, background: '#ffffff', lineColor: '#000000', margin: 12 }); }
   catch (e) { toast('Could not encode as ' + fmt + ': ' + e.message, 'err'); }
 }
 
