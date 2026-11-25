@@ -1040,10 +1040,18 @@ function printableScore(bytes) {
     else if (b >= 97 && b <= 122) score += 2;
     else if (b >= 65 && b <= 90) score += 1.3;
     else if (b >= 48 && b <= 57) score += 0.8;
+    // underscore, braces and a couple of other flag-shape punctuation marks are
+    // extremely common in CTF plaintext (flag{...}, ctf_2024, snake_case) — score
+    // them like letters rather than as generic noise, or a correct flag loses to
+    // coincidental all-lowercase garbage of the same length.
+    else if (b === 0x5f || b === 0x7b || b === 0x7d) score += 1.6;
     else if (b >= 33 && b <= 126) score += 0.3;
     else score -= 2;
   }
-  return score / (bytes.length || 1);
+  let s = score / (bytes.length || 1);
+  const text = bytesToAsciiPreview(bytes);
+  if (/flag\{[^}]*\}/i.test(text) || /ctf\{[^}]*\}/i.test(text)) s += 5; // unmistakable — force it to the top
+  return s;
 }
 function xorApplyTool() {
   const hex = document.getElementById('xorInput').value;
